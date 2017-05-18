@@ -1,6 +1,6 @@
 /* This is a version of the game Breakout developed by students from Federal
 * University of Rio de Janeiro.
-* Developers: Breno Coll, Breno Tostes e Leonardo Ventura
+* Developers: Breno Coll, Breno Tostes and Leonardo Ventura
 * Professor: Adriano Cruz
 */
 
@@ -35,6 +35,10 @@ typedef struct _OBJECT {
   int imgH;
 } OBJECT;
 
+/* Global variables*/
+OBJECT ball;
+OBJECT bar;
+
 /* The window we'll be rendering to */
 SDL_Window* gWindow = NULL;
 
@@ -68,6 +72,31 @@ OBJECT createOBJECT(int posX, int posY, int stepX, int stepY, SDL_Surface *image
 void moveOBJECT(OBJECT *p);
 
 int main(int argc, char const *argv[]) {
+  /* local variables */
+  SDL_Rect srcRect, dstRect;
+  int quit;
+  /* event handler */
+  SDL_Event e;
+
+  /* Start up SDL and create window */
+  if (!init())  {
+      printf("Failed to initialize SDL")
+  }
+
+  else {
+    if (!loadMedia()) {
+      printf("Media could not be loaded\n");
+    }
+
+    else {
+      ball = createOBJECT(/*ENTER ARGUMENTS HERE*/);
+      bar = createOBJECT(/*ENTER ARGUMENTS HERE*/)
+
+
+    }
+  }
+
+
   return 0;
 }
 
