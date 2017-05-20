@@ -71,6 +71,11 @@ OBJECT createOBJECT(int posX, int posY, int stepX, int stepY, SDL_Surface *image
 /* Move object function */
 void moveOBJECT(OBJECT *p);
 
+
+/* starts main function */
+
+
+
 int main(int argc, char const *argv[]) {
   /* local variables */
   SDL_Rect srcRect, dstRect;
@@ -89,8 +94,12 @@ int main(int argc, char const *argv[]) {
     }
 
     else {
-      ball = createOBJECT(/*ENTER ARGUMENTS HERE*/);
-      bar = createOBJECT(/*ENTER ARGUMENTS HERE*/)
+      /* MAIN MENU CODE HERE */
+
+      /* create ball object */
+      ball = createOBJECT(SCREEN_WIDTH/2, (3*SCREEN_HEIGHT/4)+1), 0, 0, gJPGSurface);
+      /* create bar object */
+      bar = createOBJECT(SCREEN_WIDTH/2, (3*SCREEN_HEIGHT/4), 0, 0, gJPGSurface);
 
       /* Starts game main loop */
       while(SDL_PollEvent(&e) != 0) {
@@ -98,7 +107,7 @@ int main(int argc, char const *argv[]) {
         if (e.type == SDL_Quit) {
           quit = true;
         }
-        else {
+        else if (e.type == SDL_KEYDOWN) {
           switch(e.key.keysym.sym) {
             /* user taps left arrow */
             case SDLK_LEFT:
@@ -118,6 +127,11 @@ int main(int argc, char const *argv[]) {
 
   return 0;
 }
+
+
+
+
+
 
 void moveOBJECT(OBJECT *p) {
     p->posX += p->stepX;
@@ -160,7 +174,8 @@ int init() {
     }
     else {
         /*Create window*/
-        gWindow = SDL_CreateWindow("Breakout game. Have fun!", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN );
+        gWindow = SDL_CreateWindow("Breakout game. Have fun!", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+            SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
         if( gWindow == NULL ) {
             printf( "Window could not be created! SDL Error: %s\n", SDL_GetError() );
             success = false;
