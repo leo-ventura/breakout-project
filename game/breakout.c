@@ -92,6 +92,25 @@ int main(int argc, char const *argv[]) {
       ball = createOBJECT(/*ENTER ARGUMENTS HERE*/);
       bar = createOBJECT(/*ENTER ARGUMENTS HERE*/)
 
+      /* Starts game main loop */
+      while(SDL_PollEvent(&e) != 0) {
+        /* user request quit*/
+        if (e.type == SDL_Quit) {
+          quit = true;
+        }
+        else {
+          switch(e.key.keysym.sym) {
+            /* user taps left arrow */
+            case SDLK_LEFT:
+              bar.posX += bar.stepX;
+              break;
+            /* user taps right arrow */
+            case SDLK_RIGHT:
+              bar.posX -= bar.stepX;
+              break;
+          }
+        }
+      }
 
     }
   }
