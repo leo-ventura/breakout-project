@@ -8,11 +8,16 @@
  */
 
 /*Using SDL, SDL_image, standard IO, and strings*/
+#ifndef SDL_MAIN_HANDLED
+#define SDL_MAIN_HANDLED
+#endif
+
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
+#include <stdlib.h>
 
 /*
  * Constants
