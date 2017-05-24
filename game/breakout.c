@@ -5,11 +5,16 @@
 */
 
 /* Using SDL, SDL_image, stdio, strings and time*/
+#ifndef SDL_MAIN_HANDLED
+#define SDL_MAIN_HANDLED
+#endif
+
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
+#include <stdlib.h>
 
 #define BLOCK_WIDHT 120
 #define BLOCK_HEIGHT 40
