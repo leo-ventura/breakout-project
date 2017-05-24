@@ -275,6 +275,13 @@ BLOCK collisionBlock(BLOCK block, NPC *ball, int i) {
     block.posX = -BLOCK_WIDHT*(i+1);
     block.posY = -BLOCK_HEIGHT*(i+1);
   }
+  else if ((ball->posX - block.posX)*(ball->posX - block.posX) + (ball->posY - block.posY)*(ball->posY - block.posY) < (block.posY + BLOCK_HEIGHT)*(block.posY + BLOCK_HEIGHT)) {
+    ball->stepX = -ball->stepX;
+    ball->stepY = -ball->stepY;
+    block.resistance -= 1;
+    block.posX = -BLOCK_WIDHT;
+    block.posY = -BLOCK_HEIGHT;
+  }
   return block;
 }
 
