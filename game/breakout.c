@@ -111,7 +111,7 @@ BLOCK createBLOCK(int posX, int posY, SDL_Surface *image);
 void drawBlock(BLOCK b, SDL_Rect srcBlock);
 
 /* check collision between ball and block */
-BLOCK collisionBlock(BLOCK block, OBJECT *ball, int i);
+BLOCK collisionBlock(BLOCK block, OBJECT *ball, int i, int j);
 
 
 /* starts main function */
@@ -130,17 +130,12 @@ int main(int argc, char const *argv[]) {
   SDL_Event e;
 
   /* Start up SDL and create window */
-  if (!init())  {
-      printf("SDL could not be initialized\n");
-  }
+  if (!init() || !loadMedia()) printf("SDL could not be initialized\n");
 
-  if (!loadMedia()) {
-    printf("Media could not be loaded\n");
-  }
   /* MAIN MENU CODE HERE */
   /*menu();*/
   /* create ball object */
-  ball = createOBJECT(((SCREEN_WIDTH/2) + 15), ((3*SCREEN_HEIGHT/4) + 15), 0, 0, gBallSurface);
+  ball = createOBJECT(SCREEN_WIDTH/2, ((3*SCREEN_HEIGHT/4) + 15), 0, 0, gBallSurface);
   /* create bar object */
 /*  bar = createOBJECT(SCREEN_WIDTH/2, (3*SCREEN_HEIGHT/4), 0, 0, gBarSurface);*/
 
@@ -149,7 +144,7 @@ int main(int argc, char const *argv[]) {
   for (j = 0; j*BLOCK_HEIGHT < SCREEN_HEIGHT; j++) qColumns++;
 
   /* loop to create blocks */
-  for (j = 0; j < qColumns/4; j++) {
+  for (j = 0; j < qColumns/5; j++) {
     for (i = 0; i < qRows; i++) {
       block[i][j] = createBLOCK(BLOCK_WIDHT*i, BLOCK_HEIGHT*j, gBlockSurface);
     }
@@ -170,7 +165,7 @@ int main(int argc, char const *argv[]) {
           }
           else if (e.key.keysym.sym == SDLK_SPACE) {
             ball.stepX = 1;
-            ball.stepY = 1;
+            ball.stepY = -1;
           }
           /*else if (e.key.keysym.sym == SDLK_LEFT) {
             bar.stepX = 1;
@@ -195,9 +190,9 @@ int main(int argc, char const *argv[]) {
     moveOBJECT(&ball);
 
 
-    for (j = 0; j < qColumns/4; j++) {
+    for (j = 0; j < qColumns/5; j++) {
       for (i = 0; i < qRows; i++) {
-        collisionBlock(block[i][j], &ball, i);
+        block[i][j] = collisionBlock(block[i][j], &ball, i, j);
       }
     }
 
@@ -223,7 +218,7 @@ int main(int argc, char const *argv[]) {
     srcBlock.w = BLOCK_WIDHT;
     srcBlock.h = BLOCK_HEIGHT;
 
-    for (j = 0; j < qColumns/4; j++) {
+    for (j = 0; j < qColumns/5; j++) {
       for (i = 0; i < qRows; i++) {
         if (block[i][j].resistance > 0) drawBlock(block[i][j], srcBlock);
       }
@@ -275,7 +270,7 @@ BLOCK createBLOCK(int posX, int posY, SDL_Surface *image) {
   return b;
 }
 
-BLOCK collisionBlock(BLOCK block, OBJECT *ball, int i) {
+BLOCK collisionBlock(BLOCK block, OBJECT *ball, int i, int j) {
   /*left = ball.posX <= block.posX && ball.posY < block.posY + BLOCK_HEIGHT && ball.posY > block.posY;
   right = ball.posX >= block.posX && ball.posY < block.posY + BLOCK_HEIGHT && ball.posY > block.posY;
   down = ball.posX > block.posX && ball.posX < block.posX + BLOCK_WIDHT && ball.posY < block.posY + BLOCK_HEIGHT;
@@ -283,37 +278,46 @@ BLOCK collisionBlock(BLOCK block, OBJECT *ball, int i) {
   (i+1) to move the image
   */
 
-  if (ball->posX > block.posX && ball->posX < block.posX + BLOCK_WIDHT && ball->posY < block.posY + BLOCK_HEIGHT) {
+  /* down */
+  if (ball->posX + 15 >= block.posX && ball->posX <= block.posX + BLOCK_WIDHT && ball->posY <= block.posY) {
     ball->stepY = -ball->stepY;
     block.resistance -= 1;
     block.posX = -BLOCK_WIDHT*(i+1);
-    block.posY = -BLOCK_HEIGHT*(i+1); /* probably j */ /* or it doesn't matter */
+    block.posY = -BLOCK_HEIGHT*(j+1);
   }
-  else if (ball->posX == block.posX && ball->posY < block.posY + BLOCK_HEIGHT && ball->posY > block.posY) {
+
+  /* left */
+  else if (ball->posX + 15 == block.posX && ball->posY <= block.posY + BLOCK_HEIGHT && ball->posY >= block.posY) {
     ball->stepX = -ball->stepX;
     block.resistance -= 1;
     block.posX = -BLOCK_WIDHT*(i+1);
-    block.posY = -BLOCK_HEIGHT*(i+1); /* probably j */
+    block.posY = -BLOCK_HEIGHT*(j+1);
   }
-  else if (ball->posX == block.posX && ball->posY < block.posY + BLOCK_HEIGHT && ball->posY > block.posY) {
+
+  /* right */
+  else if (ball->posX == block.posX && ball->posY <= block.posY + BLOCK_HEIGHT && ball->posY >= block.posY) {
     ball->stepX = -ball->stepX;
     block.resistance -= 1;
     block.posX = -BLOCK_WIDHT*(i+1);
-    block.posY = -BLOCK_HEIGHT*(i+1);
+    block.posY = -BLOCK_HEIGHT*(j+1);
   }
-  else if (ball->posX > block.posX && ball->posX < block.posX + BLOCK_WIDHT && ball->posY < block.posY) {
+
+  /*
+  else if (ball->posX >= block.posX && ball->posX <= block.posX + BLOCK_WIDHT && ball->posY <= block.posY) {
     ball->stepY = -ball->stepY;
     block.resistance -= 1;
     block.posX = -BLOCK_WIDHT*(i+1);
-    block.posY = -BLOCK_HEIGHT*(i+1);
-  }
-  else if ((ball->posX - block.posX)*(ball->posX - block.posX) + (ball->posY - block.posY)*(ball->posY - block.posY) < (block.posY + BLOCK_HEIGHT)*(block.posY + BLOCK_HEIGHT)) {
+    block.posY = -BLOCK_HEIGHT*(j+1);
+  }*/
+
+  /* critical collision */
+  /*else if ((ball->posX - block.posX)*(ball->posX - block.posX) + (ball->posY - block.posY)*(ball->posY - block.posY) <= (block.posY + BLOCK_HEIGHT)*(block.posY + BLOCK_HEIGHT)) {
     ball->stepX = -ball->stepX;
     ball->stepY = -ball->stepY;
     block.resistance -= 1;
     block.posX = -BLOCK_WIDHT*(i+1);
-    block.posY = -BLOCK_HEIGHT*(i+1);
-  }
+    block.posY = -BLOCK_HEIGHT*(j+1);
+  }*/
   return block;
 }
 
@@ -391,7 +395,7 @@ int loadMedia() {
   /*gBarSurface = loadSurface( INSERT BAR'S IMAGE PATH HERE );*/
 
     /* load block surface */
-    gBlockSurface = loadSurface("./tijolo.png");
+    gBlockSurface = loadSurface("./big_brick.png");
     if(gBallSurface == NULL || gBlockSurface == NULL) {
         printf( "Failed to load image! SDL Error: %s\n", SDL_GetError() );
         success = false;
