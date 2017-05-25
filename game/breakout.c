@@ -349,11 +349,23 @@ void collisionBlock(BLOCK *block, OBJECT *ball) {
 }
 
 void collisionBar(OBJECT bar, OBJECT *ball){
-  if ((ball->posY + BALL_HEIGHT == bar.posY) &&
-      (ball->posX + BALL_WIDTH/2 > bar.posX) &&
-      (ball->posX + BALL_WIDTH/2 < bar.posX + BAR_WIDTH)){
-        ball->stepY *= -1;
-        ball->posY += ball->stepY;
+  if (ball->stepY != 0 && ball->stepX != 0){
+    if ((ball->posY + BALL_HEIGHT == bar.posY) &&
+        (ball->posX + BALL_WIDTH/2 > bar.posX) &&
+        (ball->posX + BALL_WIDTH/2 < bar.posX + BAR_WIDTH/2)){
+          ball->stepY *= -1;
+          ball->stepX = -1;
+          ball->posY += ball->stepY;
+          ball->posX += ball->stepX;
+    }
+    else if ((ball->posY + BALL_HEIGHT == bar.posY) &&
+        (ball->posX + BALL_WIDTH/2 >= bar.posX + BAR_WIDTH/2) &&
+        (ball->posX + BALL_WIDTH/2 < bar.posX + BAR_WIDTH)){
+          ball->stepY *= -1;
+          ball->stepX = 1;
+          ball->posY += ball->stepY;
+          ball->posX += ball->stepX;
+    }
   }
 
 
