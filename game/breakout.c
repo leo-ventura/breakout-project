@@ -160,19 +160,6 @@ int main(int argc, char const *argv[]) {
       /* create bar object */
       bar = createOBJECT(SCREEN_WIDTH/2 - BAR_WIDTH/2, SCREEN_HEIGHT - 100, 0, 0, gBarSurface);
 
-      /* counts how many rows and columns /
-      for (i = 0; i*BLOCK_WIDTH < SCREEN_WIDTH; i++) qRows++;
-      for (j = 0; j*BLOCK_HEIGHT < SCREEN_HEIGHT; j++) qColumns++;
-      */
-
-      /* loop to create blocks
-      for (j = 0; j < qColumns/4; j++) {
-        for (i = 0; i < qRows; i++) {
-          block[i][j] = createBLOCK(BLOCK_WIDTH*i, BLOCK_HEIGHT*j, gBlockSurface);
-        }
-      }
-      */
-
       for (i = 0; i < ROWS; i++) {
         for (j = 0; j < COLUMNS; j++) {
           block[i][j] = createBLOCK( BLOCK_WIDTH * j, BLOCK_HEIGHT * i, gBlockSurface);
@@ -193,11 +180,27 @@ int main(int argc, char const *argv[]) {
                 if (e.key.keysym.sym == SDLK_ESCAPE) {
                     quit = true;
                 }
-                else if (e.key.keysym.sym == SDLK_SPACE && !gameStarted) {
+                else if(!gameStarted) {
+                  if (e.key.keysym.sym == SDLK_LEFT) {
+                    ball.stepX = -BAR_SPEED;
+                    bar.stepX = -BAR_SPEED;
+                  }
+                  else if (e.key.keysym.sym == SDLK_RIGHT) {
+                    ball.stepX = BAR_SPEED;
+                    bar.stepX = BAR_SPEED;
+                  }
+                  else if (e.key.keysym.sym == SDLK_SPACE) {
+                    ball.stepX = 1;
+                    ball.stepY = -1;
+                    gameStarted = true;
+                  }
+                }
+
+                /*else if (e.key.keysym.sym == SDLK_SPACE && !gameStarted) {
                   ball.stepX = 1;
                   ball.stepY = -1;
                   gameStarted = true;
-                }
+              }*/
                 else if (e.key.keysym.sym == SDLK_LEFT && gameStarted) {
                   /*bar.stepX = -1;*/
                   /*bar.posX -= 5;*/
@@ -325,7 +328,6 @@ void collisionBlock(BLOCK *block, OBJECT *ball) {
   right = ball.posX >= block.posX && ball.posY < block.posY + BLOCK_HEIGHT && ball.posY > block.posY;
   down = ball.posX > block.posX && ball.posX < block.posX + BLOCK_WIDTH && ball.posY < block.posY + BLOCK_HEIGHT;
   up = ball.posX > block.posX && ball.posX < block.posX + BLOCK_WIDTH && ball.posY < block.posY;
-  (i+1) to move the image
   */
   if (block->resistance > 0) {
     if (((ball->posY == block->posY + BLOCK_HEIGHT) ||
@@ -451,14 +453,14 @@ int loadMedia() {
     /*uint32_t colorKey;*/
 
     /*Load ball surface*/
-    gBallSurface = loadSurface("./bola.png");
+    gBallSurface = loadSurface("../image_library/bola.png");
     SDL_SetColorKey( gBallSurface, SDL_TRUE, SDL_MapRGB( gBallSurface->format, 0xFF, 0xFF, 0xFF ) );
 
     /* load bar surface */
-    gBarSurface = loadSurface("./bar.png");
+    gBarSurface = loadSurface("../image_library/bar.png");
 
     /* load block surface */
-    gBlockSurface = loadSurface("./big_brick.png");
+    gBlockSurface = loadSurface("../image_library/big_brick.png");
 
     if(gBallSurface == NULL || gBlockSurface == NULL || gBarSurface == NULL) {
         printf( "Failed to load image! SDL Error: %s\n", SDL_GetError() );
