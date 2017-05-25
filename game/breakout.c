@@ -16,17 +16,11 @@
 #include <time.h>
 #include <stdlib.h>
 
-#define BLOCK_WIDHT 120
-#define BLOCK_HEIGHT 40
 
-#define ROWS 7
-#define COLUMNS 3
+#define ROWS 3
+#define COLUMNS 6
 
-#define BAR_WIDTH 120
-#define BAR_HEIGHT 20
 
-#define SCREEN_WIDTH 720
-#define SCREEN_HEIGHT 600
 
 /*SDL_Surface* screen
 SDL_Window* window;
@@ -37,8 +31,20 @@ SDL_Event event;*/
 const int true = 1;
 const int false = 0;
 
-const int BALL_WIDHT = 15;
+const int BALL_WIDTH = 15;
 const int BALL_HEIGHT = 15;
+
+const int BLOCK_WIDTH = 120;
+const int BLOCK_HEIGHT = 40;
+
+const int BAR_WIDTH = 120;
+const int BAR_HEIGHT = 20;
+
+const int SCREEN_WIDTH = 720;
+const int SCREEN_HEIGHT = 600;
+
+
+
 
 /* Defining structures */
 typedef struct _BALL {
@@ -62,6 +68,7 @@ typedef struct _BLOCK {
 
 /* Global variables*/
 OBJECT ball;
+BLOCK block[ROWS][COLUMNS];
 
 /* The window we'll be rendering to */
 SDL_Window *gWindow = NULL;
@@ -111,7 +118,7 @@ BLOCK createBLOCK(int posX, int posY, SDL_Surface *image);
 void drawBlock(BLOCK b, SDL_Rect srcBlock);
 
 /* check collision between ball and block */
-BLOCK collisionBlock(BLOCK block, OBJECT *ball, int i, int j);
+void collisionBlock(BLOCK *block, OBJECT *ball);
 
 
 /* starts main function */
@@ -121,125 +128,148 @@ int main(int argc, char const *argv[]) {
   /* local variables */
   SDL_Rect srcBall, dstBall;
   SDL_Rect srcBlock;
-/*  SDL_Rect srcBar, dstBar;*/
-  BLOCK block[ROWS][COLUMNS];
+  /*SDL_Rect srcBar, dstBar;*/
   int quit;
   int i, j;
-  int qRows = 0, qColumns = 0;
+  /*int qRows = 0, qColumns = 0;*/
   /* event handler */
   SDL_Event e;
 
   /* Start up SDL and create window */
-  if (!init() || !loadMedia()) printf("SDL could not be initialized\n");
-
-  /* MAIN MENU CODE HERE */
-  /*menu();*/
-  /* create ball object */
-  ball = createOBJECT(SCREEN_WIDTH/2, ((3*SCREEN_HEIGHT/4) + 15), 0, 0, gBallSurface);
-  /* create bar object */
-/*  bar = createOBJECT(SCREEN_WIDTH/2, (3*SCREEN_HEIGHT/4), 0, 0, gBarSurface);*/
-
-  /* counts how many rows and columns */
-  for (i = 0; i*BLOCK_WIDHT < SCREEN_WIDTH; i++) qRows++;
-  for (j = 0; j*BLOCK_HEIGHT < SCREEN_HEIGHT; j++) qColumns++;
-
-  /* loop to create blocks */
-  for (j = 0; j < qColumns/5; j++) {
-    for (i = 0; i < qRows; i++) {
-      block[i][j] = createBLOCK(BLOCK_WIDHT*i, BLOCK_HEIGHT*j, gBlockSurface);
-    }
+  if (!init())  {
+      printf("SDL could not be initialized\n");
   }
-  quit = false;
+  else {
+    if (!loadMedia()) {
+      printf("Media could not be loaded\n");
+    }
+    else {
+      /* MAIN MENU CODE HERE */
+      /*menu();*/
+      /* create ball object */
+      ball = createOBJECT(((SCREEN_WIDTH/2) + BALL_WIDTH), ((3*SCREEN_HEIGHT/4) + BALL_HEIGHT), 0, 0, gBallSurface);
+      /* create bar object */
+    /*  bar = createOBJECT(SCREEN_WIDTH/2, (3*SCREEN_HEIGHT/4), 0, 0, gBarSurface);*/
 
-  while(!quit) {
-    /* Starts game main loop */
-    while(SDL_PollEvent(&e) != 0) {
-      /* user request quit*/
-      switch(e.type) {
-        case SDL_QUIT:
-          quit = true;
-          break;
-      case SDL_KEYDOWN:
-          if (e.key.keysym.sym == SDLK_ESCAPE) {
+      /* counts how many rows and columns /
+      for (i = 0; i*BLOCK_WIDTH < SCREEN_WIDTH; i++) qRows++;
+      for (j = 0; j*BLOCK_HEIGHT < SCREEN_HEIGHT; j++) qColumns++;
+      */
+
+      /* loop to create blocks
+      for (j = 0; j < qColumns/4; j++) {
+        for (i = 0; i < qRows; i++) {
+          block[i][j] = createBLOCK(BLOCK_WIDTH*i, BLOCK_HEIGHT*j, gBlockSurface);
+        }
+      }
+      */
+
+      for (i = 0; i < ROWS; i++) {
+        for (j = 0; j < COLUMNS; j++) {
+          block[i][j] = createBLOCK( BLOCK_WIDTH * j, BLOCK_HEIGHT * i, gBlockSurface);
+        }
+      }
+
+      quit = false;
+
+      while(!quit) {
+        /* Starts game main loop */
+        while(SDL_PollEvent(&e) != 0) {
+          /* user request quit*/
+          switch(e.type) {
+            case SDL_QUIT:
               quit = true;
+              break;
+              case SDL_KEYDOWN:
+              if (e.key.keysym.sym == SDLK_ESCAPE) {
+                  quit = true;
+              }
+              else if (e.key.keysym.sym == SDLK_SPACE) {
+                ball.stepX = 1;
+                ball.stepY = -1;
+              }
+              /*else if (e.key.keysym.sym == SDLK_LEFT) {
+                bar.stepX = 1;
+              }
+              else if (e.key.keysym.sym == SDLK_RIGHT) {
+                bar.stepX = -1;
+              }*/
+            break;
           }
-          else if (e.key.keysym.sym == SDLK_SPACE) {
-            ball.stepX = 1;
-            ball.stepY = -1;
+                /* user taps left arrow */
+               /*case SDLK_LEFT:
+                  bar.posX -= bar.stepX;
+                  break;*/
+                /* user taps right arrow */
+                /*case SDLK_RIGHT:
+                  bar.posX += bar.stepX;
+                  break;*/
+        }
+            /* Fill screen surface with white */
+        SDL_FillRect(gScreenSurface, NULL, SDL_MapRGB(gScreenSurface->format, 0xFF, 0xFF, 0xFF));
+
+        moveOBJECT(&ball);
+
+        /*
+        for (j = 0; j < qColumns/4; j++) {
+          for (i = 0; i < qRows; i++) {
+            collisionBlock(block[i][j], &ball, i);
           }
-          /*else if (e.key.keysym.sym == SDLK_LEFT) {
-            bar.stepX = 1;
+        }
+        */
+
+        for (i = 0; i < ROWS; i++) {
+          for (j = 0; j < COLUMNS; j++) {
+            collisionBlock(&block[i][j], &ball);
           }
-          else if (e.key.keysym.sym == SDLK_RIGHT) {
-            bar.stepX = -1;
-          }*/
-        break;
-      }
-            /* user taps left arrow */
-           /*case SDLK_LEFT:
-              bar.posX -= bar.stepX;
-              break;*/
-            /* user taps right arrow */
-            /*case SDLK_RIGHT:
-              bar.posX += bar.stepX;
-              break;*/
-    }
-        /* Fill screen surface with white */
-    SDL_FillRect(gScreenSurface, NULL, SDL_MapRGB(gScreenSurface->format, 0xFF, 0xFF, 0xFF));
-
-    moveOBJECT(&ball);
+        }
 
 
-    for (j = 0; j < qColumns/5; j++) {
-      for (i = 0; i < qRows; i++) {
-        block[i][j] = collisionBlock(block[i][j], &ball, i, j);
-      }
-    }
+            /* ball's source */
+        srcBall.x = 0;
+        srcBall.y = 0;
+        srcBall.w = BALL_WIDTH;
+        srcBall.h = BALL_HEIGHT;
+        dstBall.x = ball.posX;
+        dstBall.y = ball.posY;
 
-        /* ball's source */
-    srcBall.x = 0;
-    srcBall.y = 0;
-    srcBall.w = 15;
-    srcBall.h = 15;
-    dstBall.x = ball.posX;
-    dstBall.y = ball.posY;
+        /* bar's source */
+        /*srcBar.x = 0;
+        srcBar.y = 0;
+        srcBar.w = BAR_WIDTH;
+        srcBar.h = BAR_HEIGHT;
+        dstBar.x = bar.posX;
+        dstBar.y = bar.posY;*/
 
-    /* bar's source */
-    /*srcBar.x = 0;
-    srcBar.y = 0;
-    srcBar.w = BAR_WIDTH;
-    srcBar.h = BAR_HEIGHT;
-    dstBar.x = bar.posX;
-    dstBar.y = bar.posY;*/
+        /* block's source */
+        srcBlock.x = 0;
+        srcBlock.y = 0;
+        srcBlock.w = BLOCK_WIDTH;
+        srcBlock.h = BLOCK_HEIGHT;
 
-    /* block's source */
-    srcBlock.x = 0;
-    srcBlock.y = 0;
-    srcBlock.w = BLOCK_WIDHT;
-    srcBlock.h = BLOCK_HEIGHT;
+        for (j = 0; j < COLUMNS; j++) {
+          for (i = 0; i < ROWS; i++) {
+            if (block[i][j].resistance > 0) drawBlock(block[i][j], srcBlock);
+          }
+        }
 
-    for (j = 0; j < qColumns/5; j++) {
-      for (i = 0; i < qRows; i++) {
-        if (block[i][j].resistance > 0) drawBlock(block[i][j], srcBlock);
+        if(SDL_BlitSurface(ball.image, &srcBall, gScreenSurface, &dstBall) < 0/* ||
+          SDL_BlitSurface(bar.image, &srcBar, gScreenSurface, &dstBar) < 0*/) {
+            printf("SDL could not blit! SDL Error: %s\n", SDL_GetError());
+            quit = true;
+        }
+
+        /* Update the surface */
+        SDL_UpdateWindowSurface(gWindow);
+
+        /* it'll be changed later */
+        SDL_Delay(2.5);
+        }
       }
     }
+    closing();
 
-    if(SDL_BlitSurface(ball.image, &srcBall, gScreenSurface, &dstBall) < 0/* ||
-      SDL_BlitSurface(bar.image, &srcBar, gScreenSurface, &dstBar) < 0*/) {
-        printf("SDL could not blit! SDL Error: %s\n", SDL_GetError());
-        quit = true;
-    }
-
-    /* Update the surface */
-    SDL_UpdateWindowSurface(gWindow);
-
-    /* it'll be changed later */
-    SDL_Delay(2.5);
-    }
-
-  closing();
-
-  return 0;
+    return 0;
 }
 
 
@@ -270,55 +300,67 @@ BLOCK createBLOCK(int posX, int posY, SDL_Surface *image) {
   return b;
 }
 
-BLOCK collisionBlock(BLOCK block, OBJECT *ball, int i, int j) {
+void collisionBlock(BLOCK *block, OBJECT *ball) {
   /*left = ball.posX <= block.posX && ball.posY < block.posY + BLOCK_HEIGHT && ball.posY > block.posY;
   right = ball.posX >= block.posX && ball.posY < block.posY + BLOCK_HEIGHT && ball.posY > block.posY;
-  down = ball.posX > block.posX && ball.posX < block.posX + BLOCK_WIDHT && ball.posY < block.posY + BLOCK_HEIGHT;
-  up = ball.posX > block.posX && ball.posX < block.posX + BLOCK_WIDHT && ball.posY < block.posY;
+  down = ball.posX > block.posX && ball.posX < block.posX + BLOCK_WIDTH && ball.posY < block.posY + BLOCK_HEIGHT;
+  up = ball.posX > block.posX && ball.posX < block.posX + BLOCK_WIDTH && ball.posY < block.posY;
   (i+1) to move the image
   */
-
-  /* down */
-  if (ball->posX + 15 >= block.posX && ball->posX <= block.posX + BLOCK_WIDHT && ball->posY <= block.posY + BLOCK_HEIGHT) {
+  /*
+  if (ball->posX > block->posX && ball->posX < block->posX + BLOCK_WIDTH && ball->posY < block->posY + BLOCK_HEIGHT) {
     ball->stepY = -ball->stepY;
-    block.resistance -= 1;
-    block.posX = -BLOCK_WIDHT*(i+1);
-    block.posY = -BLOCK_HEIGHT*(j+1);
+    block->resistance -= 1;
+    block->posX = -BLOCK_WIDTH*(i+1);
+    block->posY = -BLOCK_HEIGHT*(i+1);  probably j   or it doesn't matter
   }
-
-  /* left */
-  else if (ball->posX + 15 >= block.posX - 3 && ball->posX <= block.posX + 3 && ball->posY <= block.posY + BLOCK_HEIGHT && ball->posY >= block.posY) {
+  else if (ball->posX == block->posX && ball->posY < block->posY + BLOCK_HEIGHT && ball->posY > block->posY) {
     ball->stepX = -ball->stepX;
-    block.resistance -= 1;
-    block.posX = -BLOCK_WIDHT*(i+1);
-    block.posY = -BLOCK_HEIGHT*(j+1);
+    block->resistance -= 1;
+    block->posX = -BLOCK_WIDTH*(i+1);
+    block->posY = -BLOCK_HEIGHT*(i+1);  probably j
   }
-
-  /* right */
-  else if (ball->posX >= block.posX + BLOCK_WIDHT - 3 && ball->posX <= block.posX + BLOCK_WIDHT  + 3 && ball->posY <= block.posY + BLOCK_HEIGHT && ball->posY >= block.posY) {
+  else if (ball->posX == block->posX && ball->posY < block->posY + BLOCK_HEIGHT && ball->posY > block->posY) {
     ball->stepX = -ball->stepX;
-    block.resistance -= 1;
-    block.posX = -BLOCK_WIDHT*(i+1);
-    block.posY = -BLOCK_HEIGHT*(j+1);
+    block->resistance -= 1;
+    block->posX = -BLOCK_WIDTH*(i+1);
+    block->posY = -BLOCK_HEIGHT*(i+1);
   }
-
-  /* up */ /* not finished yet */
-  else if (ball->posX >= block.posX && ball->posX <= block.posX + BLOCK_WIDHT && ball->posY <= block.posY) {
+  else if (ball->posX > block->posX && ball->posX < block->posX + BLOCK_WIDTH && ball->posY < block->posY) {
     ball->stepY = -ball->stepY;
-    block.resistance -= 1;
-    block.posX = -BLOCK_WIDHT*(i+1);
-    block.posY = -BLOCK_HEIGHT*(j+1);
+    block->resistance -= 1;
+    block->posX = -BLOCK_WIDTH*(i+1);
+    block->posY = -BLOCK_HEIGHT*(i+1);
   }
-
-  /* critical collision */
-  /*else if ((ball->posX - block.posX)*(ball->posX - block.posX) + (ball->posY - block.posY)*(ball->posY - block.posY) < (block.posY + BLOCK_HEIGHT)*(block.posY + BLOCK_HEIGHT)) {
+  else if ((ball->posX - block->posX)*(ball->posX - block->posX) + (ball->posY - block->posY)*(ball->posY - block->posY) < (block->posY + BLOCK_HEIGHT)*(block->posY + BLOCK_HEIGHT)) {
     ball->stepX = -ball->stepX;
     ball->stepY = -ball->stepY;
-    block.resistance -= 1;
-    block.posX = -BLOCK_WIDHT*(i+1);
-    block.posY = -BLOCK_HEIGHT*(j+1);
-  }*/
-  return block;
+    block->resistance -= 1;
+    block->posX = -BLOCK_WIDTH*(i+1);
+    block->posY = -BLOCK_HEIGHT*(i+1);
+  }
+  */
+  if (block->resistance > 0) {
+    if (((ball->posY == block->posY + BLOCK_HEIGHT) ||
+        (ball->posY + BALL_HEIGHT == block->posY)) &&
+        (ball->posX + BALL_WIDTH/2 > block->posX) &&
+        (ball->posX + BALL_WIDTH/2 < block->posX + BLOCK_WIDTH)){
+          ball->stepY *= -1;
+          ball->posY += ball->stepY;
+          block->resistance--;
+    }
+    else if (((ball->posX == block->posX + BLOCK_WIDTH) ||
+         (ball->posX + BALL_WIDTH == block->posX)) &&
+         (ball->posY + BALL_HEIGHT/2 > block->posY) &&
+         (ball->posY + BALL_HEIGHT/2 < block->posY + BLOCK_HEIGHT)){
+            ball->stepX *= -1;
+            ball->posX += ball->stepX;
+            block->posY = SCREEN_HEIGHT;
+    }
+
+  }
+
+  /*return block;*/
 }
 
 
@@ -326,11 +368,11 @@ void moveOBJECT(OBJECT *p) {
     p->posX += p->stepX;
     p->posY += p->stepY;
 
-    if ((p->posX + 15 > SCREEN_WIDTH) || (p->posX < 0) ) {
+    if ((p->posX + BALL_WIDTH > SCREEN_WIDTH) || (p->posX < 0) ) {
         p->stepX = -p->stepX;
         p->posX += p->stepX;
     }
-    if ((p->posY + 15 > SCREEN_HEIGHT) || (p->posY < 0)) {
+    if ((p->posY + BALL_HEIGHT > SCREEN_HEIGHT) || (p->posY < 0)) {
         p->stepY = -p->stepY;
         p->posY += p->stepY;
     }
@@ -390,6 +432,7 @@ int loadMedia() {
 
     /*Load ball surface*/
     gBallSurface = loadSurface("./bola.png");
+    SDL_SetColorKey( gBallSurface, SDL_TRUE, SDL_MapRGB( gBallSurface->format, 0xFF, 0xFF, 0xFF ) );
 
     /* load bar surface */
   /*gBarSurface = loadSurface( INSERT BAR'S IMAGE PATH HERE );*/
