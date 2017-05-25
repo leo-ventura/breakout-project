@@ -43,7 +43,7 @@ const int BAR_HEIGHT = 20;
 const int SCREEN_WIDTH = 720;
 const int SCREEN_HEIGHT = 600;
 
-
+const int BAR_SPEED = 1;
 
 
 /* Defining structures */
@@ -112,6 +112,9 @@ OBJECT createOBJECT(int posX, int posY, int stepX, int stepY, SDL_Surface *image
 
 /* Move object function */
 void moveOBJECT(OBJECT *p);
+
+/* move bar function */
+void moveBAR(OBJECT *p);
 
 /* Create block function */
 BLOCK createBLOCK(int posX, int posY, SDL_Surface *image);
@@ -184,26 +187,29 @@ int main(int argc, char const *argv[]) {
           /* user request quit*/
           switch(e.type) {
               case SDL_QUIT:
-              quit = true;
-              break;
+                quit = true;
+                break;
               case SDL_KEYDOWN:
-              if (e.key.keysym.sym == SDLK_ESCAPE) {
-                  quit = true;
-              }
-              else if (e.key.keysym.sym == SDLK_SPACE && !gameStarted) {
-                ball.stepX = 1;
-                ball.stepY = -1;
-                gameStarted = true;
-              }
-              else if (e.key.keysym.sym == SDLK_LEFT && gameStarted) {
-                /*bar.stepX = -1;*/
-                bar.posX -= 5;
-              }
-              else if (e.key.keysym.sym == SDLK_RIGHT && gameStarted) {
-                /*bar.stepX = 1;*/
-                bar.posX += 5;
-              }
-              /*NEED SOME CHANGES*/
+                if (e.key.keysym.sym == SDLK_ESCAPE) {
+                    quit = true;
+                }
+                else if (e.key.keysym.sym == SDLK_SPACE && !gameStarted) {
+                  ball.stepX = 1;
+                  ball.stepY = -1;
+                  gameStarted = true;
+                }
+                else if (e.key.keysym.sym == SDLK_LEFT && gameStarted) {
+                  /*bar.stepX = -1;*/
+                  /*bar.posX -= 5;*/
+                  bar.stepX = -BAR_SPEED;
+                }
+                else if (e.key.keysym.sym == SDLK_RIGHT && gameStarted) {
+                  /*bar.stepX = 1;*/
+                  /*bar.posX += 5;*/
+                  bar.stepX = BAR_SPEED;
+                }
+                break;
+            /*NEED SOME CHANGES*/
             break;
           }
                 /* user taps left arrow */
@@ -219,7 +225,7 @@ int main(int argc, char const *argv[]) {
         SDL_FillRect(gScreenSurface, NULL, SDL_MapRGB(gScreenSurface->format, 0xFF, 0xFF, 0xFF));
 
         moveOBJECT(&ball);
-        moveOBJECT(&bar);
+        moveBAR(&bar);
 
         /*
         for (j = 0; j < qColumns/4; j++) {
@@ -321,39 +327,6 @@ void collisionBlock(BLOCK *block, OBJECT *ball) {
   up = ball.posX > block.posX && ball.posX < block.posX + BLOCK_WIDTH && ball.posY < block.posY;
   (i+1) to move the image
   */
-  /*
-  if (ball->posX > block->posX && ball->posX < block->posX + BLOCK_WIDTH && ball->posY < block->posY + BLOCK_HEIGHT) {
-    ball->stepY = -ball->stepY;
-    block->resistance -= 1;
-    block->posX = -BLOCK_WIDTH*(i+1);
-    block->posY = -BLOCK_HEIGHT*(i+1);  probably j   or it doesn't matter
-  }
-  else if (ball->posX == block->posX && ball->posY < block->posY + BLOCK_HEIGHT && ball->posY > block->posY) {
-    ball->stepX = -ball->stepX;
-    block->resistance -= 1;
-    block->posX = -BLOCK_WIDTH*(i+1);
-    block->posY = -BLOCK_HEIGHT*(i+1);  probably j
-  }
-  else if (ball->posX == block->posX && ball->posY < block->posY + BLOCK_HEIGHT && ball->posY > block->posY) {
-    ball->stepX = -ball->stepX;
-    block->resistance -= 1;
-    block->posX = -BLOCK_WIDTH*(i+1);
-    block->posY = -BLOCK_HEIGHT*(i+1);
-  }
-  else if (ball->posX > block->posX && ball->posX < block->posX + BLOCK_WIDTH && ball->posY < block->posY) {
-    ball->stepY = -ball->stepY;
-    block->resistance -= 1;
-    block->posX = -BLOCK_WIDTH*(i+1);
-    block->posY = -BLOCK_HEIGHT*(i+1);
-  }
-  else if ((ball->posX - block->posX)*(ball->posX - block->posX) + (ball->posY - block->posY)*(ball->posY - block->posY) < (block->posY + BLOCK_HEIGHT)*(block->posY + BLOCK_HEIGHT)) {
-    ball->stepX = -ball->stepX;
-    ball->stepY = -ball->stepY;
-    block->resistance -= 1;
-    block->posX = -BLOCK_WIDTH*(i+1);
-    block->posY = -BLOCK_HEIGHT*(i+1);
-  }
-  */
   if (block->resistance > 0) {
     if (((ball->posY == block->posY + BLOCK_HEIGHT) ||
         (ball->posY + BALL_HEIGHT == block->posY)) &&
@@ -373,8 +346,6 @@ void collisionBlock(BLOCK *block, OBJECT *ball) {
     }
 
   }
-
-  /*return block;*/
 }
 
 void collisionBar(OBJECT bar, OBJECT *ball){
@@ -397,6 +368,20 @@ void moveOBJECT(OBJECT *p) {
     }
     if ((p->posY + BALL_HEIGHT > SCREEN_HEIGHT) || (p->posY < 0)) {
         p->stepY = -p->stepY;
+        p->posY += p->stepY;
+    }
+}
+
+void moveBAR(OBJECT *p) {
+    p->posX += p->stepX;
+    p->posY += p->stepY;
+
+    if ((p->posX + BAR_WIDTH > SCREEN_WIDTH) || (p->posX < 0) ) {
+        p->stepX = 0;
+        p->posX += p->stepX;
+    }
+    if ((p->posY + BAR_HEIGHT > SCREEN_HEIGHT) || (p->posY < 0)) {
+        p->stepY = 0;
         p->posY += p->stepY;
     }
 }
