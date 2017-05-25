@@ -68,13 +68,12 @@ typedef struct _BLOCK {
 
 /* Global variables*/
 OBJECT ball;
+OBJECT bar;
 BLOCK block[ROWS][COLUMNS];
 
 /* The window we'll be rendering to */
 SDL_Window *gWindow = NULL;
 
-/* Characters image */
-/*OBJECT bar;*/
 
 /* The surface contained by the window */
 SDL_Surface *gScreenSurface = NULL;
@@ -87,6 +86,9 @@ SDL_Surface *gBallSurface = NULL;
 
 /* blocks' surface */
 SDL_Surface *gBlockSurface = NULL;
+
+/* bar's surface */
+SDL_Surface *gBarSurface = NULL;
 
 /* Functions prototypes */
 
@@ -120,6 +122,9 @@ void drawBlock(BLOCK b, SDL_Rect srcBlock);
 /* check collision between ball and block */
 void collisionBlock(BLOCK *block, OBJECT *ball);
 
+/*check collision between ball and bar */
+void collisionBar(OBJECT bar, OBJECT *ball);
+
 
 /* starts main function */
 
@@ -128,8 +133,9 @@ int main(int argc, char const *argv[]) {
   /* local variables */
   SDL_Rect srcBall, dstBall;
   SDL_Rect srcBlock;
-  /*SDL_Rect srcBar, dstBar;*/
+  SDL_Rect srcBar, dstBar;
   int quit;
+  int gameStarted = false; /*verify if space bar have already been pressed to start the game*/
   int i, j;
   /*int qRows = 0, qColumns = 0;*/
   /* event handler */
@@ -147,9 +153,9 @@ int main(int argc, char const *argv[]) {
       /* MAIN MENU CODE HERE */
       /*menu();*/
       /* create ball object */
-      ball = createOBJECT(((SCREEN_WIDTH/2) + BALL_WIDTH), ((3*SCREEN_HEIGHT/4) + BALL_HEIGHT), 0, 0, gBallSurface);
+      ball = createOBJECT(SCREEN_WIDTH/2 - BALL_WIDTH/2, SCREEN_HEIGHT - 100 - BALL_HEIGHT, 0, 0, gBallSurface);
       /* create bar object */
-    /*  bar = createOBJECT(SCREEN_WIDTH/2, (3*SCREEN_HEIGHT/4), 0, 0, gBarSurface);*/
+      bar = createOBJECT(SCREEN_WIDTH/2 - BAR_WIDTH/2, SCREEN_HEIGHT - 100, 0, 0, gBarSurface);
 
       /* counts how many rows and columns /
       for (i = 0; i*BLOCK_WIDTH < SCREEN_WIDTH; i++) qRows++;
@@ -177,23 +183,27 @@ int main(int argc, char const *argv[]) {
         while(SDL_PollEvent(&e) != 0) {
           /* user request quit*/
           switch(e.type) {
-            case SDL_QUIT:
+              case SDL_QUIT:
               quit = true;
               break;
               case SDL_KEYDOWN:
               if (e.key.keysym.sym == SDLK_ESCAPE) {
                   quit = true;
               }
-              else if (e.key.keysym.sym == SDLK_SPACE) {
+              else if (e.key.keysym.sym == SDLK_SPACE && !gameStarted) {
                 ball.stepX = 1;
                 ball.stepY = -1;
+                gameStarted = true;
               }
-              /*else if (e.key.keysym.sym == SDLK_LEFT) {
-                bar.stepX = 1;
+              else if (e.key.keysym.sym == SDLK_LEFT && gameStarted) {
+                /*bar.stepX = -1;*/
+                bar.posX -= 5;
               }
-              else if (e.key.keysym.sym == SDLK_RIGHT) {
-                bar.stepX = -1;
-              }*/
+              else if (e.key.keysym.sym == SDLK_RIGHT && gameStarted) {
+                /*bar.stepX = 1;*/
+                bar.posX += 5;
+              }
+              /*NEED SOME CHANGES*/
             break;
           }
                 /* user taps left arrow */
@@ -209,6 +219,7 @@ int main(int argc, char const *argv[]) {
         SDL_FillRect(gScreenSurface, NULL, SDL_MapRGB(gScreenSurface->format, 0xFF, 0xFF, 0xFF));
 
         moveOBJECT(&ball);
+        moveOBJECT(&bar);
 
         /*
         for (j = 0; j < qColumns/4; j++) {
@@ -217,12 +228,15 @@ int main(int argc, char const *argv[]) {
           }
         }
         */
-
+        /* check collision between ball and all the blocks */
         for (i = 0; i < ROWS; i++) {
           for (j = 0; j < COLUMNS; j++) {
             collisionBlock(&block[i][j], &ball);
           }
         }
+
+        /* check collision between ball and bar */
+        collisionBar(bar, &ball);
 
 
             /* ball's source */
@@ -234,12 +248,12 @@ int main(int argc, char const *argv[]) {
         dstBall.y = ball.posY;
 
         /* bar's source */
-        /*srcBar.x = 0;
+        srcBar.x = 0;
         srcBar.y = 0;
         srcBar.w = BAR_WIDTH;
         srcBar.h = BAR_HEIGHT;
         dstBar.x = bar.posX;
-        dstBar.y = bar.posY;*/
+        dstBar.y = bar.posY;
 
         /* block's source */
         srcBlock.x = 0;
@@ -253,8 +267,8 @@ int main(int argc, char const *argv[]) {
           }
         }
 
-        if(SDL_BlitSurface(ball.image, &srcBall, gScreenSurface, &dstBall) < 0/* ||
-          SDL_BlitSurface(bar.image, &srcBar, gScreenSurface, &dstBar) < 0*/) {
+        if(SDL_BlitSurface(ball.image, &srcBall, gScreenSurface, &dstBall) < 0 ||
+          SDL_BlitSurface(bar.image, &srcBar, gScreenSurface, &dstBar) < 0) {
             printf("SDL could not blit! SDL Error: %s\n", SDL_GetError());
             quit = true;
         }
@@ -363,7 +377,16 @@ void collisionBlock(BLOCK *block, OBJECT *ball) {
   /*return block;*/
 }
 
+void collisionBar(OBJECT bar, OBJECT *ball){
+  if ((ball->posY + BALL_HEIGHT == bar.posY) &&
+      (ball->posX + BALL_WIDTH/2 > bar.posX) &&
+      (ball->posX + BALL_WIDTH/2 < bar.posX + BAR_WIDTH)){
+        ball->stepY *= -1;
+        ball->posY += ball->stepY;
+  }
 
+
+}
 void moveOBJECT(OBJECT *p) {
     p->posX += p->stepX;
     p->posY += p->stepY;
@@ -435,11 +458,12 @@ int loadMedia() {
     SDL_SetColorKey( gBallSurface, SDL_TRUE, SDL_MapRGB( gBallSurface->format, 0xFF, 0xFF, 0xFF ) );
 
     /* load bar surface */
-  /*gBarSurface = loadSurface( INSERT BAR'S IMAGE PATH HERE );*/
+    gBarSurface = loadSurface("./bar.png");
 
     /* load block surface */
     gBlockSurface = loadSurface("./big_brick.png");
-    if(gBallSurface == NULL || gBlockSurface == NULL) {
+
+    if(gBallSurface == NULL || gBlockSurface == NULL || gBarSurface == NULL) {
         printf( "Failed to load image! SDL Error: %s\n", SDL_GetError() );
         success = false;
     }
@@ -475,9 +499,9 @@ void closing() {
     gBallSurface = NULL;
 
     /* Free bar image */
-  /*  SDL_FreeSurface(gBarSurface);
+    SDL_FreeSurface(gBarSurface);
     gBarSurface = NULL;
-*/
+
     /* Free block surface */
     SDL_FreeSurface(gBlockSurface);
     gBlockSurface = NULL;
