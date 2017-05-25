@@ -279,7 +279,7 @@ BLOCK collisionBlock(BLOCK block, OBJECT *ball, int i, int j) {
   */
 
   /* down */
-  if (ball->posX + 15 >= block.posX && ball->posX <= block.posX + BLOCK_WIDHT && ball->posY <= block.posY) {
+  if (ball->posX + 15 >= block.posX && ball->posX <= block.posX + BLOCK_WIDHT && ball->posY <= block.posY + BLOCK_HEIGHT) {
     ball->stepY = -ball->stepY;
     block.resistance -= 1;
     block.posX = -BLOCK_WIDHT*(i+1);
@@ -287,7 +287,7 @@ BLOCK collisionBlock(BLOCK block, OBJECT *ball, int i, int j) {
   }
 
   /* left */
-  else if (ball->posX + 15 == block.posX && ball->posY <= block.posY + BLOCK_HEIGHT && ball->posY >= block.posY) {
+  else if (ball->posX + 15 >= block.posX - 3 && ball->posX <= block.posX + 3 && ball->posY <= block.posY + BLOCK_HEIGHT && ball->posY >= block.posY) {
     ball->stepX = -ball->stepX;
     block.resistance -= 1;
     block.posX = -BLOCK_WIDHT*(i+1);
@@ -295,23 +295,23 @@ BLOCK collisionBlock(BLOCK block, OBJECT *ball, int i, int j) {
   }
 
   /* right */
-  else if (ball->posX == block.posX && ball->posY <= block.posY + BLOCK_HEIGHT && ball->posY >= block.posY) {
+  else if (ball->posX >= block.posX + BLOCK_WIDHT - 3 && ball->posX <= block.posX + BLOCK_WIDHT  + 3 && ball->posY <= block.posY + BLOCK_HEIGHT && ball->posY >= block.posY) {
     ball->stepX = -ball->stepX;
     block.resistance -= 1;
     block.posX = -BLOCK_WIDHT*(i+1);
     block.posY = -BLOCK_HEIGHT*(j+1);
   }
 
-  /*
+  /* up */ /* not finished yet */
   else if (ball->posX >= block.posX && ball->posX <= block.posX + BLOCK_WIDHT && ball->posY <= block.posY) {
     ball->stepY = -ball->stepY;
     block.resistance -= 1;
     block.posX = -BLOCK_WIDHT*(i+1);
     block.posY = -BLOCK_HEIGHT*(j+1);
-  }*/
+  }
 
   /* critical collision */
-  /*else if ((ball->posX - block.posX)*(ball->posX - block.posX) + (ball->posY - block.posY)*(ball->posY - block.posY) <= (block.posY + BLOCK_HEIGHT)*(block.posY + BLOCK_HEIGHT)) {
+  /*else if ((ball->posX - block.posX)*(ball->posX - block.posX) + (ball->posY - block.posY)*(ball->posY - block.posY) < (block.posY + BLOCK_HEIGHT)*(block.posY + BLOCK_HEIGHT)) {
     ball->stepX = -ball->stepX;
     ball->stepY = -ball->stepY;
     block.resistance -= 1;
