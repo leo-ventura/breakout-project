@@ -114,7 +114,7 @@ OBJECT createOBJECT(int posX, int posY, int stepX, int stepY, SDL_Surface *image
 void moveOBJECT(OBJECT *p);
 
 /* move bar function */
-void moveBAR(OBJECT *p, OBJECT *ball);
+void moveBAR(OBJECT *p, OBJECT *ball, int gameStarted);
 
 /* Create block function */
 BLOCK createBLOCK(int posX, int posY, SDL_Surface *image);
@@ -138,8 +138,6 @@ void stageOne(int *quit);
 int main(int argc, char const *argv[]) {
   /* local variables */
   int quit;
-  /* event handler */
-  /*SDL_Event e;*/
 
   /* Start up SDL and create window */
   if (!init())  {
@@ -152,30 +150,12 @@ int main(int argc, char const *argv[]) {
     else {
       /* MAIN MENU CODE HERE */
       /*menu();*/
-      /* create ball object */
-
 
       quit = false;
       stageOne(&quit);
-      /*while(!quit) {
-         Starts game main loop
-        while(SDL_PollEvent(&e) != 0) {
-           user request quit
-          switch(e.type) {
-              case SDL_QUIT:
-                quit = true;
-                break;
-              case SDL_KEYDOWN:
-                if (e.key.keysym.sym == SDLK_ESCAPE) {
-                    quit = true;
-                }
-          }
-        }
-        stageOne(&quit);*/
       }
     }
     closing();
-
     return 0;
 }
 
@@ -271,14 +251,14 @@ void moveOBJECT(OBJECT *p) {
     }
 }
 
-void moveBAR(OBJECT *p, OBJECT *ball) {
+void moveBAR(OBJECT *p, OBJECT *ball, int gameStarted) {
     p->posX += p->stepX;
     p->posY += p->stepY;
 
     if ((p->posX + BAR_WIDTH > SCREEN_WIDTH) || (p->posX < 0) ) {
         p->stepX = 0;
         p->posX += p->stepX;
-        ball->stepX = 0;
+        if (!gameStarted) ball->stepX = 0;
     }
 }
 
@@ -467,7 +447,7 @@ void stageOne(int *quit){
     SDL_FillRect(gScreenSurface, NULL, SDL_MapRGB(gScreenSurface->format, 0xFF, 0xFF, 0xFF));
 
     moveOBJECT(&ball);
-    moveBAR(&bar, &ball);
+    moveBAR(&bar, &ball, gameStarted);
 
     /*
     for (j = 0; j < qColumns/4; j++) {
