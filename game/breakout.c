@@ -71,6 +71,7 @@ OBJECT ball;
 OBJECT bar;
 BLOCK block[ROWS][COLUMNS];
 int quit;
+int points = 0;
 
 /* The window we'll be rendering to */
 SDL_Window *gWindow = NULL;
@@ -208,6 +209,7 @@ void collisionBlock(BLOCK *block, OBJECT *ball, int *quantBlocks) {
           block->resistance--;
           if (block->resistance == 0){
             (*quantBlocks)--;
+            points += 100;
           }
     }
     else if (((ball->posX == block->posX + BLOCK_WIDTH) ||
@@ -219,6 +221,7 @@ void collisionBlock(BLOCK *block, OBJECT *ball, int *quantBlocks) {
             block->resistance--;
             if (block->resistance == 0){
               (*quantBlocks)--;
+              points += 100;
             }
     }
 
@@ -519,6 +522,7 @@ void stageOne(){
     /* it'll be changed later */
     SDL_Delay(2.5);
     if (quantBlocks == 0){
+      points += 1000;
       return;
     }
   }
@@ -633,6 +637,7 @@ void stageTwo(){
     /* it'll be changed later */
     SDL_Delay(2.5);
     if (quantBlocks == 0){
+      points += 1000;
       return;
     }
   }
@@ -747,6 +752,7 @@ void stageThree(){
     /* it'll be changed later */
     SDL_Delay(2.5);
     if (quantBlocks == 0){
+      points += 1000;
       return;
     }
   }
