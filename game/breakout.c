@@ -87,7 +87,11 @@ SDL_Surface *gMenuSurface = NULL;
 SDL_Surface *gBallSurface = NULL;
 
 /* blocks' surface */
-SDL_Surface *gBlockSurface = NULL;
+SDL_Surface *gFirstBlockSurface = NULL;
+
+SDL_Surface *gSecondBlockSurface = NULL;
+
+SDL_Surface *gThirdBlockSurface = NULL;
 
 /* bar's surface */
 SDL_Surface *gBarSurface = NULL;
@@ -181,6 +185,17 @@ void drawBlock(BLOCK b, SDL_Rect srcBlock) {
   SDL_Rect dstRect;
   dstRect.x = b.posX;
   dstRect.y = b.posY;
+  switch(b.resistance) {
+    case 1:
+      b.image = gFirstBlockSurface;
+      break;
+    case 2:
+      b.image = gSecondBlockSurface;
+      break;
+    case 3:
+      b.image = gThirdBlockSurface;
+      break;
+  }
   SDL_BlitSurface(b.image, &srcBlock, gScreenSurface, &dstRect);
 }
 
@@ -328,16 +343,19 @@ int loadMedia() {
     /*uint32_t colorKey;*/
 
     /*Load ball surface*/
-    gBallSurface = loadSurface("./bola.png");
+    gBallSurface = loadSurface("../image_library/bola.png");
     SDL_SetColorKey( gBallSurface, SDL_TRUE, SDL_MapRGB( gBallSurface->format, 0xFF, 0xFF, 0xFF ) );
 
     /* load bar surface */
-    gBarSurface = loadSurface("./bar.png");
+    gBarSurface = loadSurface("../image_library/bar.png");
 
     /* load block surface */
-    gBlockSurface = loadSurface("./big_brick.png");
+    gFirstBlockSurface = loadSurface("../image_library/big_brick.png");
+    gSecondBlockSurface = loadSurface("../image_library/yellow_brick.png");
+    gThirdBlockSurface = loadSurface("../image_library/green_brick.png");
 
-    if(gBallSurface == NULL || gBlockSurface == NULL || gBarSurface == NULL) {
+    if(gBallSurface == NULL || gFirstBlockSurface == NULL || gBarSurface == NULL ||
+      gSecondBlockSurface == NULL || gThirdBlockSurface == NULL) {
         printf( "Failed to load image! SDL Error: %s\n", SDL_GetError() );
         success = false;
     }
@@ -377,8 +395,14 @@ void closing() {
     gBarSurface = NULL;
 
     /* Free block surface */
-    SDL_FreeSurface(gBlockSurface);
-    gBlockSurface = NULL;
+    SDL_FreeSurface(gFirstBlockSurface);
+    gFirstBlockSurface = NULL;
+
+    SDL_FreeSurface(gSecondBlockSurface);
+    gSecondBlockSurface = NULL;
+
+    SDL_FreeSurface(gThirdBlockSurface);
+    gThirdBlockSurface = NULL;
 
     /*Destroy window*/
     SDL_DestroyWindow( gWindow );
@@ -404,7 +428,7 @@ void stageOne(){
 
   for (i = 0; i < ROWS; i++) {
     for (j = 0; j < COLUMNS; j++) {
-      block[i][j] = createBLOCK( BLOCK_WIDTH * j, BLOCK_HEIGHT * i, gBlockSurface, 1);
+      block[i][j] = createBLOCK( BLOCK_WIDTH * j, BLOCK_HEIGHT * i, gFirstBlockSurface, 1);
       quantBlocks++;
     }
   }
@@ -543,7 +567,7 @@ void stageTwo(){
 
   for (i = 0; i < ROWS; i++) {
     for (j = 0; j < COLUMNS; j++) {
-      block[i][j] = createBLOCK( BLOCK_WIDTH * j, BLOCK_HEIGHT * i, gBlockSurface, 2);
+      block[i][j] = createBLOCK( BLOCK_WIDTH * j, BLOCK_HEIGHT * i, gSecondBlockSurface, 2);
       quantBlocks++;
     }
   }
@@ -658,7 +682,7 @@ void stageThree(){
 
   for (i = 0; i < ROWS ; i++) {
     for (j = 0; j < COLUMNS ; j++) {
-      block[i][j] = createBLOCK( BLOCK_WIDTH * j, BLOCK_HEIGHT * i, gBlockSurface, 1);
+      block[i][j] = createBLOCK( BLOCK_WIDTH * j, BLOCK_HEIGHT * i, gThirdBlockSurface, 3);
       quantBlocks++;
     }
   }
