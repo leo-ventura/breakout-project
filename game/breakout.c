@@ -11,6 +11,7 @@
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+#include <SDL2/SDL_mixer.h>
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
@@ -96,6 +97,10 @@ SDL_Surface *gThirdBlockSurface = NULL;
 /* bar's surface */
 SDL_Surface *gBarSurface = NULL;
 
+/*sounds */
+Mix_Chunk *gCollisionBarSound = NULL;
+Mix_Chunk *gCollisionBlockSound = NULL;
+Mix_Chunk *gDestroyBlockSound = NULL;
 /* Functions prototypes */
 
 /*Starts up SDL and creates window*/
@@ -225,6 +230,10 @@ void collisionBlock(BLOCK *block, OBJECT *ball, int *quantBlocks) {
           if (block->resistance == 0){
             (*quantBlocks)--;
             points += 100;
+            Mix_PlayChannel(-1, gDestroyBlockSound, 0);
+          }
+          else {
+            Mix_PlayChannel(-1, gCollisionBlockSound, 0);
           }
     }
     else if (((ball->posX == block->posX + BLOCK_WIDTH) ||
@@ -237,6 +246,10 @@ void collisionBlock(BLOCK *block, OBJECT *ball, int *quantBlocks) {
             if (block->resistance == 0){
               (*quantBlocks)--;
               points += 100;
+              Mix_PlayChannel(-1, gDestroyBlockSound, 0);
+            }
+            else {
+              Mix_PlayChannel(-1, gCollisionBlockSound, 0);
             }
     }
 
@@ -252,6 +265,7 @@ void collisionBar(OBJECT bar, OBJECT *ball){
           ball->stepX = -1;
           ball->posY += ball->stepY;
           ball->posX += ball->stepX;
+          Mix_PlayChannel(-1, gCollisionBarSound, 0);
     }
     else if ((ball->posY + BALL_HEIGHT == bar.posY) &&
         (ball->posX + BALL_WIDTH/2 >= bar.posX + BAR_WIDTH/2) &&
@@ -260,6 +274,7 @@ void collisionBar(OBJECT bar, OBJECT *ball){
           ball->stepX = 1;
           ball->posY += ball->stepY;
           ball->posX += ball->stepX;
+          Mix_PlayChannel(-1, gCollisionBarSound, 0);
     }
   }
 
@@ -306,6 +321,8 @@ int init() {
     int success = true;
 
     srand(time(NULL));
+    Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 4096);
+    Mix_AllocateChannels(16);
 
     /*Initialize SDL*/
     if( SDL_Init( SDL_INIT_VIDEO ) < 0 ) {
@@ -354,11 +371,22 @@ int loadMedia() {
     gSecondBlockSurface = loadSurface("../image_library/yellow_brick.png");
     gThirdBlockSurface = loadSurface("../image_library/green_brick.png");
 
-    if(gBallSurface == NULL || gFirstBlockSurface == NULL || gBarSurface == NULL ||
-      gSecondBlockSurface == NULL || gThirdBlockSurface == NULL) {
+    if(!gBallSurface || !gFirstBlockSurface || !gBarSurface ||
+      !gSecondBlockSurface || !gThirdBlockSurface) {
         printf( "Failed to load image! SDL Error: %s\n", SDL_GetError() );
         success = false;
     }
+
+    /*load sounds */
+    gCollisionBarSound = Mix_LoadWAV("../sound_library/collisionBar.wav");
+    gCollisionBlockSound = Mix_LoadWAV("../sound_library/collisionBlock.wav");
+    gDestroyBlockSound = Mix_LoadWAV("../sound_library/destroyBlock.wav");
+
+    if (!gCollisionBlockSound || !gCollisionBarSound || !gDestroyBlockSound) {
+      printf("Failed to load sounds! SDL Error: %s\n", SDL_GetError());
+      success = false;
+    }
+
     return success;
 }
 
@@ -407,6 +435,11 @@ void closing() {
     /*Destroy window*/
     SDL_DestroyWindow( gWindow );
     gWindow = NULL;
+
+    /*Free sounds */
+    Mix_FreeChunk(gCollisionBarSound);
+    Mix_FreeChunk(gCollisionBlockSound);
+    Mix_FreeChunk(gDestroyBlockSound);
 
     /*Quit SDL subsystems*/
     IMG_Quit();
