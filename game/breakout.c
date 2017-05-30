@@ -18,8 +18,8 @@
 #include <stdlib.h>
 
 
-#define ROWS 2
-#define COLUMNS 2
+#define ROWS 3
+#define COLUMNS 6
 
 
 
@@ -135,6 +135,7 @@ void drawBlock(BLOCK b, SDL_Rect srcBlock);
 
 /* check collision between ball and block */
 void collisionBlock(BLOCK *block, OBJECT *ball, int *quantBlocks);
+double distance(double x1, double y1, double x2, double y2);
 
 /*check collision between ball and bar */
 void collisionBar(OBJECT bar, OBJECT *ball);
@@ -220,6 +221,7 @@ void collisionBlock(BLOCK *block, OBJECT *ball, int *quantBlocks) {
   up = ball.posX > block.posX && ball.posX < block.posX + BLOCK_WIDTH && ball.posY < block.posY;
   */
   if (block->resistance > 0) {
+    /* up and down */
     if (((ball->posY == block->posY + BLOCK_HEIGHT) ||
         (ball->posY + BALL_HEIGHT == block->posY)) &&
         (ball->posX + BALL_WIDTH/2 > block->posX) &&
@@ -236,6 +238,7 @@ void collisionBlock(BLOCK *block, OBJECT *ball, int *quantBlocks) {
             Mix_PlayChannel(-1, gCollisionBlockSound, 0);
           }
     }
+    /* left and right */
     else if (((ball->posX == block->posX + BLOCK_WIDTH) ||
          (ball->posX + BALL_WIDTH == block->posX)) &&
          (ball->posY + BALL_HEIGHT/2 > block->posY) &&
@@ -252,8 +255,95 @@ void collisionBlock(BLOCK *block, OBJECT *ball, int *quantBlocks) {
               Mix_PlayChannel(-1, gCollisionBlockSound, 0);
             }
     }
+    /* upper left */
+    else if (distance(ball->posX + BALL_WIDTH/2, ball->posY + BALL_HEIGHT/2, block->posX, block->posY) < BALL_WIDTH/2){
+      if (ball->stepX > 0) {
+        ball->stepX *= -1;
+      }
+      if (ball->stepY > 0) {
+        ball->stepY *= -1;
+      }
+      ball->posX += ball->stepX;
+      ball->posY += ball->stepY;
+      block->resistance --;
+      if (block->resistance == 0){
+        (*quantBlocks)--;
+        points += 100;
+        Mix_PlayChannel(-1, gDestroyBlockSound, 0);
+      }
+      else {
+        Mix_PlayChannel(-1, gCollisionBlockSound, 0);
+      }
+    }
 
+    /* lower left */
+    else if (distance(ball->posX + BALL_WIDTH/2, ball->posY + BALL_HEIGHT/2, block->posX, block->posY + BLOCK_HEIGHT) < BALL_WIDTH/2){
+      if (ball->stepX > 0) {
+        ball->stepX *= -1;
+      }
+      if (ball->stepY < 0) {
+        ball->stepY *= -1;
+      }
+      ball->posX += ball->stepX;
+      ball->posY += ball->stepY;
+      block->resistance --;
+      if (block->resistance == 0){
+        (*quantBlocks)--;
+        points += 100;
+        Mix_PlayChannel(-1, gDestroyBlockSound, 0);
+      }
+      else {
+        Mix_PlayChannel(-1, gCollisionBlockSound, 0);
+      }
+    }
+
+    /* lower right */
+    else if (distance(ball->posX + BALL_WIDTH/2, ball->posY + BALL_HEIGHT/2, block->posX + BLOCK_WIDTH, block->posY + BLOCK_HEIGHT) < BALL_WIDTH/2){
+      if (ball->stepX < 0) {
+        ball->stepX *= -1;
+      }
+      if (ball->stepY < 0) {
+        ball->stepY *= -1;
+      }
+      ball->posX += ball->stepX;
+      ball->posY += ball->stepY;
+      block->resistance --;
+      if (block->resistance == 0){
+        (*quantBlocks)--;
+        points += 100;
+        Mix_PlayChannel(-1, gDestroyBlockSound, 0);
+      }
+      else {
+        Mix_PlayChannel(-1, gCollisionBlockSound, 0);
+      }
+    }
+
+    /* upper right */
+    else if (distance(ball->posX + BALL_WIDTH/2, ball->posY + BALL_HEIGHT/2, block->posX + BLOCK_WIDTH, block->posY) < BALL_WIDTH/2){
+      if (ball->stepX < 0) {
+        ball->stepX *= -1;
+      }
+      if (ball->stepY > 0) {
+        ball->stepY *= -1;
+      }
+      ball->posX += ball->stepX;
+      ball->posY += ball->stepY;
+      block->resistance --;
+      if (block->resistance == 0){
+        (*quantBlocks)--;
+        points += 100;
+        Mix_PlayChannel(-1, gDestroyBlockSound, 0);
+      }
+      else {
+        Mix_PlayChannel(-1, gCollisionBlockSound, 0);
+      }
+    }
   }
+}
+
+double distance(double x1, double y1, double x2, double y2){
+  double dist = sqrt ((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1));
+  return dist;
 }
 
 void collisionBar(OBJECT bar, OBJECT *ball){
