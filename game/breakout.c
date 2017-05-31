@@ -44,15 +44,13 @@ const int BAR_HEIGHT = 20;
 const int SCREEN_WIDTH = 720;
 const int SCREEN_HEIGHT = 600;
 
-const int BAR_SPEED = 1;
-
 
 /* Defining structures */
 typedef struct _BALL {
-  int posX;
-  int posY;
-  int stepX;
-  int stepY;
+  double posX;
+  double posY;
+  double stepX;
+  double stepY;
   SDL_Surface* image;
   int imgW;
   int imgH;
@@ -71,8 +69,9 @@ typedef struct _BLOCK {
 OBJECT ball;
 OBJECT bar;
 BLOCK block[ROWS][COLUMNS];
-int quit;
-int points = 0;
+int gQuit;
+int gPoints = 0;
+int gLifes = 3;
 
 /* The window we'll be rendering to */
 SDL_Window *gWindow = NULL;
@@ -119,7 +118,7 @@ void closing();
 SDL_Surface* loadSurface(char *path);
 
 /* Create object function */
-OBJECT createOBJECT(int posX, int posY, int stepX, int stepY, SDL_Surface *image);
+OBJECT createOBJECT(double posX, double posY, double stepX, double stepY, SDL_Surface *image);
 
 /* Move object function */
 void moveOBJECT(OBJECT *p);
@@ -137,9 +136,13 @@ void drawBlock(BLOCK b, SDL_Rect srcBlock);
 void collisionBlock(BLOCK *block, OBJECT *ball, int *quantBlocks);
 double distance(double x1, double y1, double x2, double y2);
 
+/* check wheter player loses one life */
+void gameOver(OBJECT *ball, OBJECT *bar, int *gameStarted);
+
 /*check collision between ball and bar */
 void collisionBar(OBJECT bar, OBJECT *ball);
 
+void keyPressed(OBJECT *ball, OBJECT *bar, SDL_Event e, int *gameStarted);
 /*initiates stage one*/
 void stageOne();
 void stageTwo();
@@ -164,7 +167,7 @@ int main(int argc, char const *argv[]) {
       /* MAIN MENU CODE HERE */
       /*menu();*/
 
-      quit = false;
+      gQuit = false;
       stageOne();
       stageTwo();
       stageThree();
@@ -231,16 +234,16 @@ void collisionBlock(BLOCK *block, OBJECT *ball, int *quantBlocks) {
           block->resistance--;
           if (block->resistance == 0){
             (*quantBlocks)--;
-            points += 100;
+            gPoints += 100;
             Mix_PlayChannel(-1, gDestroyBlockSound, 0);
           }
           else {
             Mix_PlayChannel(-1, gCollisionBlockSound, 0);
           }
     }
-    /* left and right */
-    else if (((ball->posX == block->posX + BLOCK_WIDTH) ||
-         (ball->posX + BALL_WIDTH == block->posX)) &&
+    /* right and left */
+    else if (((ball->posX <= block->posX + BLOCK_WIDTH && ball->posX > block->posX) ||
+         (ball->posX + BALL_WIDTH >= block->posX && ball->posX + BALL_WIDTH < block->posX + BLOCK_WIDTH )) &&
          (ball->posY + BALL_HEIGHT/2 > block->posY) &&
          (ball->posY + BALL_HEIGHT/2 < block->posY + BLOCK_HEIGHT)){
             ball->stepX *= -1;
@@ -248,7 +251,7 @@ void collisionBlock(BLOCK *block, OBJECT *ball, int *quantBlocks) {
             block->resistance--;
             if (block->resistance == 0){
               (*quantBlocks)--;
-              points += 100;
+              gPoints += 100;
               Mix_PlayChannel(-1, gDestroyBlockSound, 0);
             }
             else {
@@ -268,7 +271,7 @@ void collisionBlock(BLOCK *block, OBJECT *ball, int *quantBlocks) {
       block->resistance --;
       if (block->resistance == 0){
         (*quantBlocks)--;
-        points += 100;
+        gPoints += 100;
         Mix_PlayChannel(-1, gDestroyBlockSound, 0);
       }
       else {
@@ -289,7 +292,7 @@ void collisionBlock(BLOCK *block, OBJECT *ball, int *quantBlocks) {
       block->resistance --;
       if (block->resistance == 0){
         (*quantBlocks)--;
-        points += 100;
+        gPoints += 100;
         Mix_PlayChannel(-1, gDestroyBlockSound, 0);
       }
       else {
@@ -310,7 +313,7 @@ void collisionBlock(BLOCK *block, OBJECT *ball, int *quantBlocks) {
       block->resistance --;
       if (block->resistance == 0){
         (*quantBlocks)--;
-        points += 100;
+        gPoints += 100;
         Mix_PlayChannel(-1, gDestroyBlockSound, 0);
       }
       else {
@@ -331,7 +334,7 @@ void collisionBlock(BLOCK *block, OBJECT *ball, int *quantBlocks) {
       block->resistance --;
       if (block->resistance == 0){
         (*quantBlocks)--;
-        points += 100;
+        gPoints += 100;
         Mix_PlayChannel(-1, gDestroyBlockSound, 0);
       }
       else {
@@ -347,21 +350,24 @@ double distance(double x1, double y1, double x2, double y2){
 }
 
 void collisionBar(OBJECT bar, OBJECT *ball){
+  /*collision on the left side of the bar */
   if (ball->stepY != 0 && ball->stepX != 0){
     if ((ball->posY + BALL_HEIGHT == bar.posY) &&
         (ball->posX + BALL_WIDTH/2 > bar.posX) &&
         (ball->posX + BALL_WIDTH/2 < bar.posX + BAR_WIDTH/2)){
           ball->stepY *= -1;
-          ball->stepX = -1;
+          ball->stepX = ((ball->posX + BALL_WIDTH/2) - (bar.posX + BAR_WIDTH/2))/20;
           ball->posY += ball->stepY;
           ball->posX += ball->stepX;
           Mix_PlayChannel(-1, gCollisionBarSound, 0);
     }
+
+    /*collision on the right side of the bar */
     else if ((ball->posY + BALL_HEIGHT == bar.posY) &&
         (ball->posX + BALL_WIDTH/2 >= bar.posX + BAR_WIDTH/2) &&
         (ball->posX + BALL_WIDTH/2 < bar.posX + BAR_WIDTH)){
           ball->stepY *= -1;
-          ball->stepX = 1;
+          ball->stepX = ((ball->posX + BALL_WIDTH/2) - (bar.posX + BAR_WIDTH/2))/20;
           ball->posY += ball->stepY;
           ball->posX += ball->stepX;
           Mix_PlayChannel(-1, gCollisionBarSound, 0);
@@ -378,11 +384,29 @@ void moveOBJECT(OBJECT *p) {
         p->stepX = -p->stepX;
         p->posX += p->stepX;
     }
-    if ((p->posY + BALL_HEIGHT > SCREEN_HEIGHT) || (p->posY < 0)) {
+    if (p->posY < 0) {
         p->stepY = -p->stepY;
         p->posY += p->stepY;
     }
 }
+
+void gameOver(OBJECT *ball, OBJECT *bar, int *gameStarted){
+  if (ball->posY > SCREEN_HEIGHT){
+    gLifes--;
+    *gameStarted = false;
+    ball->posX = SCREEN_WIDTH/2 - BALL_WIDTH/2;
+    ball->posY = SCREEN_HEIGHT - 100 - BALL_HEIGHT;
+    ball->stepX = 0;
+    ball->stepY = 0;
+    bar->posX = SCREEN_WIDTH/2 - BAR_WIDTH/2;
+    bar->posY = SCREEN_HEIGHT - 100;
+    bar->stepX = 0;
+    bar->stepY = 0;
+    printf("%d Lifes\n", gLifes);
+  }
+}
+
+
 
 void moveBAR(OBJECT *p, OBJECT *ball, int gameStarted) {
     p->posX += p->stepX;
@@ -395,7 +419,7 @@ void moveBAR(OBJECT *p, OBJECT *ball, int gameStarted) {
     }
 }
 
-OBJECT createOBJECT(int posX, int posY, int stepX, int stepY, SDL_Surface *image) {
+OBJECT createOBJECT(double posX, double posY, double stepX, double stepY, SDL_Surface *image) {
     OBJECT p;
 
     p.posX = posX;
@@ -536,6 +560,55 @@ void closing() {
     SDL_Quit();
 }
 
+void keyPressed(OBJECT *ball, OBJECT *bar, SDL_Event e, int *gameStarted){
+  switch(e.type) {
+      case SDL_QUIT:
+        gQuit = true;
+        break;
+      case SDL_KEYDOWN:
+        if (e.key.keysym.sym == SDLK_ESCAPE) {
+            gQuit = true;
+        }
+        else if(!*gameStarted) {
+          if (e.key.keysym.sym == SDLK_LEFT) {
+            ball->stepX = -1;
+            bar->stepX = -1;
+          }
+          else if (e.key.keysym.sym == SDLK_RIGHT) {
+            ball->stepX = 1;
+            bar->stepX = 1;
+          }
+          else if (e.key.keysym.sym == SDLK_SPACE) {
+            ball->stepX = 1;
+            ball->stepY = -1;
+            *gameStarted = true;
+          }
+        }
+        else if (e.key.keysym.sym == SDLK_LEFT) {
+          bar->stepX = -1;
+        }
+        else if (e.key.keysym.sym == SDLK_RIGHT) {
+          bar->stepX = 1;
+        }
+        break;
+      case SDL_KEYUP:
+        if (!*gameStarted){
+          if (e.key.keysym.sym == SDLK_LEFT || SDLK_RIGHT){
+            ball->stepX = 0;
+            bar->stepX = 0;
+          }
+        }
+        else {
+          if (e.key.keysym.sym == SDLK_LEFT || SDLK_RIGHT){
+            bar->stepX = 0;
+          }
+        }
+        break;
+  }
+}
+
+
+
 void stageOne(){
   SDL_Rect srcBall, dstBall;
   SDL_Rect srcBlock;
@@ -557,56 +630,15 @@ void stageOne(){
   }
 
   /* Starts game main loop */
-  while (!quit){
+  printf("%d Lifes\n", gLifes);
+  while (!gQuit){
+    /* verifies if any key have been pressed */
     while(SDL_PollEvent(&e) != 0) {
-      switch(e.type) {
-          case SDL_QUIT:
-            quit = true;
-            break;
-          case SDL_KEYDOWN:
-            if (e.key.keysym.sym == SDLK_ESCAPE) {
-                quit = true;
-            }
-            else if(!gameStarted) {
-              if (e.key.keysym.sym == SDLK_LEFT) {
-                ball.stepX = -BAR_SPEED;
-                bar.stepX = -BAR_SPEED;
-              }
-              else if (e.key.keysym.sym == SDLK_RIGHT) {
-                ball.stepX = BAR_SPEED;
-                bar.stepX = BAR_SPEED;
-              }
-              else if (e.key.keysym.sym == SDLK_SPACE) {
-                ball.stepX = 1;
-                ball.stepY = -1;
-                gameStarted = true;
-              }
-            }
-            else if (e.key.keysym.sym == SDLK_LEFT) {
-              /*bar.stepX = -1;*/
-              /*bar.posX -= 5;*/
-              bar.stepX = -BAR_SPEED;
-            }
-            else if (e.key.keysym.sym == SDLK_RIGHT) {
-              /*bar.stepX = 1;*/
-              /*bar.posX += 5;*/
-              bar.stepX = BAR_SPEED;
-            }
-            break;
-        /*NEED SOME CHANGES*/
-        break;
-      }
-            /* user taps left arrow */
-           /*case SDLK_LEFT:
-              bar.posX -= bar.stepX;
-              break;*/
-            /* user taps right arrow */
-            /*case SDLK_RIGHT:
-              bar.posX += bar.stepX;
-              break;*/
+      keyPressed(&ball, &bar, e, &gameStarted);
     }
+
         /* Fill screen surface with white */
-    SDL_FillRect(gScreenSurface, NULL, SDL_MapRGB(gScreenSurface->format, 0xFF, 0xFF, 0xFF));
+    SDL_FillRect(gScreenSurface, NULL, SDL_MapRGB(gScreenSurface->format, 0x66, 0xFF, 0xFF));
 
     moveOBJECT(&ball);
     moveBAR(&bar, &ball, gameStarted);
@@ -628,6 +660,8 @@ void stageOne(){
     /* check collision between ball and bar */
     collisionBar(bar, &ball);
 
+    gameOver(&ball, &bar, &gameStarted);
+    if (gLifes < 0) gQuit = true;
 
         /* ball's source */
     srcBall.x = 0;
@@ -660,7 +694,7 @@ void stageOne(){
     if(SDL_BlitSurface(ball.image, &srcBall, gScreenSurface, &dstBall) < 0 ||
       SDL_BlitSurface(bar.image, &srcBar, gScreenSurface, &dstBar) < 0) {
         printf("SDL could not blit! SDL Error: %s\n", SDL_GetError());
-        quit = true;
+        gQuit = true;
     }
 
     /* Update the surface */
@@ -669,7 +703,7 @@ void stageOne(){
     /* it'll be changed later */
     SDL_Delay(2.5);
     if (quantBlocks == 0){
-      points += 1000;
+      gPoints += 1000;
       return;
     }
   }
@@ -694,46 +728,12 @@ void stageTwo(){
       quantBlocks++;
     }
   }
-  while (!quit){
+  while (!gQuit){
     while(SDL_PollEvent(&e) != 0) {
-      switch(e.type) {
-          case SDL_QUIT:
-            quit = true;
-            break;
-          case SDL_KEYDOWN:
-            if (e.key.keysym.sym == SDLK_ESCAPE) {
-                quit = true;
-            }
-            else if(!gameStarted) {
-              if (e.key.keysym.sym == SDLK_LEFT) {
-                ball.stepX = -BAR_SPEED;
-                bar.stepX = -BAR_SPEED;
-              }
-              else if (e.key.keysym.sym == SDLK_RIGHT) {
-                ball.stepX = BAR_SPEED;
-                bar.stepX = BAR_SPEED;
-              }
-              else if (e.key.keysym.sym == SDLK_SPACE) {
-                ball.stepX = 1;
-                ball.stepY = -1;
-                gameStarted = true;
-              }
-            }
-            else if (e.key.keysym.sym == SDLK_LEFT) {
-              /*bar.stepX = -1;*/
-              /*bar.posX -= 5;*/
-              bar.stepX = -BAR_SPEED;
-            }
-            else if (e.key.keysym.sym == SDLK_RIGHT) {
-              /*bar.stepX = 1;*/
-              /*bar.posX += 5;*/
-              bar.stepX = BAR_SPEED;
-            }
-            break;
-        break;
-      }
+        keyPressed(&ball, &bar, e, &gameStarted);
     }
-    SDL_FillRect(gScreenSurface, NULL, SDL_MapRGB(gScreenSurface->format, 0xFF, 0xFF, 0xFF));
+
+    SDL_FillRect(gScreenSurface, NULL, SDL_MapRGB(gScreenSurface->format, 0x66, 0xFF, 0xFF));
     moveOBJECT(&ball);
     moveBAR(&bar, &ball, gameStarted);
 
@@ -744,6 +744,9 @@ void stageTwo(){
     }
 
     collisionBar(bar, &ball);
+    gameOver(&ball, &bar, &gameStarted);
+    if (gLifes < 0) gQuit = true;
+
 
     srcBall.x = 0;
     srcBall.y = 0;
@@ -775,7 +778,7 @@ void stageTwo(){
     if(SDL_BlitSurface(ball.image, &srcBall, gScreenSurface, &dstBall) < 0 ||
       SDL_BlitSurface(bar.image, &srcBar, gScreenSurface, &dstBar) < 0) {
         printf("SDL could not blit! SDL Error: %s\n", SDL_GetError());
-        quit = true;
+        gQuit = true;
     }
 
     /* Update the surface */
@@ -784,7 +787,7 @@ void stageTwo(){
     /* it'll be changed later */
     SDL_Delay(2.5);
     if (quantBlocks == 0){
-      points += 1000;
+      gPoints += 1000;
       return;
     }
   }
@@ -809,46 +812,11 @@ void stageThree(){
       quantBlocks++;
     }
   }
-  while (!quit){
+  while (!gQuit){
     while(SDL_PollEvent(&e) != 0) {
-      switch(e.type) {
-          case SDL_QUIT:
-            quit = true;
-            break;
-          case SDL_KEYDOWN:
-            if (e.key.keysym.sym == SDLK_ESCAPE) {
-                quit = true;
-            }
-            else if(!gameStarted) {
-              if (e.key.keysym.sym == SDLK_LEFT) {
-                ball.stepX = -BAR_SPEED;
-                bar.stepX = -BAR_SPEED;
-              }
-              else if (e.key.keysym.sym == SDLK_RIGHT) {
-                ball.stepX = BAR_SPEED;
-                bar.stepX = BAR_SPEED;
-              }
-              else if (e.key.keysym.sym == SDLK_SPACE) {
-                ball.stepX = 1;
-                ball.stepY = -1;
-                gameStarted = true;
-              }
-            }
-            else if (e.key.keysym.sym == SDLK_LEFT) {
-              /*bar.stepX = -1;*/
-              /*bar.posX -= 5;*/
-              bar.stepX = -BAR_SPEED;
-            }
-            else if (e.key.keysym.sym == SDLK_RIGHT) {
-              /*bar.stepX = 1;*/
-              /*bar.posX += 5;*/
-              bar.stepX = BAR_SPEED;
-            }
-            break;
-        break;
-      }
+        keyPressed(&ball, &bar, e, &gameStarted);
     }
-    SDL_FillRect(gScreenSurface, NULL, SDL_MapRGB(gScreenSurface->format, 0xFF, 0xFF, 0xFF));
+    SDL_FillRect(gScreenSurface, NULL, SDL_MapRGB(gScreenSurface->format, 0x66, 0xFF, 0xFF));
     moveOBJECT(&ball);
     moveBAR(&bar, &ball, gameStarted);
 
@@ -857,7 +825,8 @@ void stageThree(){
         collisionBlock(&block[i][j], &ball, &quantBlocks);
       }
     }
-
+    gameOver(&ball, &bar, &gameStarted);
+    if (gLifes < 0) gQuit = true;
     collisionBar(bar, &ball);
 
     srcBall.x = 0;
@@ -890,7 +859,7 @@ void stageThree(){
     if(SDL_BlitSurface(ball.image, &srcBall, gScreenSurface, &dstBall) < 0 ||
       SDL_BlitSurface(bar.image, &srcBar, gScreenSurface, &dstBar) < 0) {
         printf("SDL could not blit! SDL Error: %s\n", SDL_GetError());
-        quit = true;
+        gQuit = true;
     }
 
     /* Update the surface */
@@ -899,7 +868,7 @@ void stageThree(){
     /* it'll be changed later */
     SDL_Delay(2.5);
     if (quantBlocks == 0){
-      points += 1000;
+      gPoints += 1000;
       return;
     }
   }
