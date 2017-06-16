@@ -1,18 +1,26 @@
 CC=gcc
 
 CFLAGS=-g -Wall -D_GNU_SOURCE=1 -D_REENTRANT -std=c90 -pedantic -lm
-#CFLAGS=-g -Wall -D_REENTRANT
 IMAGE_FLAGS=-lSDL2_image
 MIXER_FLAGS=-lSDL2_mixer
 SFLAGS=-lSDL2
-SOURCES=breakout.c
+SOURCES=main.c functions.c global.c
+OBJECTS=main.o functions.o global.o
 BINARIES=breakout
 
-#all: ex0 ex1 ex2 ex3 ex4 ex5 ex6 ex7 grafico texto
 all: $(BINARIES)
 
-breakout: breakout.c
-	$(CC) -o breakout breakout.c $(CFLAGS) $(SFLAGS) $(IMAGE_FLAGS) $(MIXER_FLAGS)
+breakout: main.o functions.o global.o
+	$(CC) -o breakout main.o functions.o global.o $(CFLAGS) $(SFLAGS) $(IMAGE_FLAGS) $(MIXER_FLAGS)
+
+main.o: main.c
+	$(CC) -c main.c $(CFLAGS) $(SFLAGS) $(IMAGE_FLAGS) $(MIXER_FLAGS)
+
+funcoes.o: functions.c
+	$(CC) -c functions.c $(CFLAGS) $(SFLAGS) $(IMAGE_FLAGS) $(MIXER_FLAGS)
+
+globais.o: global.c
+	$(CC) -c global.c $(CFLAGS) $(SFLAGS) $(IMAGE_FLAGS) $(MIXER_FLAGS)
 
 clean:
 	rm -rf *.o *.exe *.bak *.c~ $(BINARIES) core a.out
