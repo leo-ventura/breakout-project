@@ -170,27 +170,27 @@ void collisionBlock(BLOCK *block, OBJECT *ball, int *quantBlocks) {
 
 
 void collisionBar(OBJECT bar, OBJECT *ball){
-  /*collision on the left side of the bar */
   if (ball->stepY != 0 && ball->stepX != 0){
-    if ((ball->posY + BALL_HEIGHT == bar.posY) &&
+    if (((ball->posY + BALL_HEIGHT == bar.posY) &&
         (ball->posX + BALL_WIDTH/2 > bar.posX) &&
-        (ball->posX + BALL_WIDTH/2 < bar.posX + BAR_WIDTH/2)){
+        (ball->posX + BALL_WIDTH/2 < bar.posX + BAR_WIDTH)) ||
+        (distance(ball->posX + BALL_WIDTH/2, ball->posY + BALL_HEIGHT/2, bar.posX, bar.posY) < BALL_WIDTH/2) ||
+        (distance(ball->posX + BALL_WIDTH/2, ball->posY + BALL_HEIGHT/2, bar.posX + BAR_WIDTH, bar.posY) < BALL_WIDTH/2)
+        ){
           ball->stepY *= -1;
-          ball->stepX = ((ball->posX + BALL_WIDTH/2) - (bar.posX + BAR_WIDTH/2))/20;
+          ball->stepX = ((ball->posX + BALL_WIDTH/2) - (bar.posX + BAR_WIDTH/2))/40;
           ball->posY += ball->stepY;
           ball->posX += ball->stepX;
           Mix_PlayChannel(-1, gCollisionBarSound, 0);
     }
-
-    /*collision on the right side of the bar */
-    else if ((ball->posY + BALL_HEIGHT == bar.posY) &&
-        (ball->posX + BALL_WIDTH/2 >= bar.posX + BAR_WIDTH/2) &&
-        (ball->posX + BALL_WIDTH/2 < bar.posX + BAR_WIDTH)){
-          ball->stepY *= -1;
-          ball->stepX = ((ball->posX + BALL_WIDTH/2) - (bar.posX + BAR_WIDTH/2))/20;
-          ball->posY += ball->stepY;
-          ball->posX += ball->stepX;
-          Mix_PlayChannel(-1, gCollisionBarSound, 0);
+    else if (((ball->posX <= bar.posX + BAR_WIDTH && ball->posX > bar.posX) ||
+         (ball->posX + BALL_WIDTH >= bar.posX && ball->posX + BALL_WIDTH < bar.posX + BAR_WIDTH )) &&
+         (ball->posY + BALL_HEIGHT/2 > bar.posY) &&
+         (ball->posY + BALL_HEIGHT/2 < bar.posY + BAR_HEIGHT)){
+           ball->stepX = ((ball->posX + BALL_WIDTH/2) - (bar.posX + BAR_WIDTH/2))/40;
+           ball->posY += ball->stepY;
+           ball->posX += ball->stepX;
+           Mix_PlayChannel(-1, gCollisionBarSound, 0);
     }
   }
 
@@ -229,14 +229,18 @@ void gameOver(OBJECT *ball, OBJECT *bar, int *gameStarted){
 
 
 void moveBAR(OBJECT *p, OBJECT *ball, int gameStarted) {
-    p->posX += p->stepX;
-    p->posY += p->stepY;
-
-    if ((p->posX + BAR_WIDTH > SCREEN_WIDTH) || (p->posX < 0) ) {
+    if ((p->posX + BAR_WIDTH >= SCREEN_WIDTH) && (p->stepX > 0) ) {
         p->stepX = 0;
         p->posX += p->stepX;
         if (!gameStarted) ball->stepX = 0;
     }
+    if ((p->posX < 0) && (p->stepX < 0) ) {
+        p->stepX = 0;
+        p->posX += p->stepX;
+        if (!gameStarted) ball->stepX = 0;
+    }
+    p->posX += p->stepX;
+    p->posY += p->stepY;
 }
 
 OBJECT createOBJECT(double posX, double posY, double stepX, double stepY, SDL_Surface *image) {
@@ -464,8 +468,8 @@ void stageOne(){
         /* Fill screen surface with white */
     SDL_FillRect(gScreenSurface, NULL, SDL_MapRGB(gScreenSurface->format, 0x66, 0xFF, 0xFF));
 
-    moveOBJECT(&ball);
     moveBAR(&bar, &ball, gameStarted);
+    moveOBJECT(&ball);
 
     /*
     for (j = 0; j < qColumns/4; j++) {
@@ -561,8 +565,8 @@ void stageTwo(){
     }
 
     SDL_FillRect(gScreenSurface, NULL, SDL_MapRGB(gScreenSurface->format, 0x66, 0xFF, 0xFF));
-    moveOBJECT(&ball);
     moveBAR(&bar, &ball, gameStarted);
+    moveOBJECT(&ball);
 
     for (i = 0; i < ROWS; i++) {
       for (j = 0; j < COLUMNS; j++) {
@@ -647,8 +651,8 @@ void stageThree(){
         keyPressed(&ball, &bar, e, &gameStarted);
     }
     SDL_FillRect(gScreenSurface, NULL, SDL_MapRGB(gScreenSurface->format, 0x66, 0xFF, 0xFF));
-    moveOBJECT(&ball);
     moveBAR(&bar, &ball, gameStarted);
+    moveOBJECT(&ball);
 
     for (i = 0; i < ROWS; i++) {
       for (j = 0; j < COLUMNS; j++) {
