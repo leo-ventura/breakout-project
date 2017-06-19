@@ -432,7 +432,55 @@ void keyPressed(OBJECT *ball, OBJECT *bar, SDL_Event e, int *gameStarted){
   }
 }
 
+void menu() {
+  unsigned int cursor = 0;
+  /*int startGame = false;
+  int options = false;
+  int help = false;*/
+  SDL_Event e;
+  /* carregar midia do menu */
+  while (!gQuit)
+    while (SDL_PollEvent(&e) != 0) {
+      switch(e.type) {
+        case SDL_QUIT:
+          gQuit = true;
+          break;
+        case SDL_KEYDOWN:
+          if (e.key.keysym.sym == SDLK_RETURN) {
+            switch(cursor) {
+              case 0:
+                stageOne();
+                break;
+              case 1:
+                /*options = true;*/
+                options();
+                break;
+              case 2:
+                help();
+                /*help = true;*/
+                break;
+            }
+          }
+          else if (e.key.keysym.sym == SDLK_DOWN) {
+            cursor = (cursor + 1)%3; /* using %3 to make sure the cursor doesn't stop at the top/bottom */
+            printf("cursor em %d\n", cursor);
+          }
+          else if (e.key.keysym.sym == SDLK_UP) {
+            cursor = (cursor + 2)%3;
+            printf("cursor em %d\n", cursor);
+          }
+          break;
+      }
+    }
+}
 
+void options() {
+  printf("Entrei em Options\n");
+}
+
+void help() {
+  printf("Entrei em Help\n");
+}
 
 void stageOne(){
   OBJECT ball;
@@ -491,7 +539,7 @@ void stageOne(){
     gameOver(&ball, &bar, &gameStarted);
     if (gLifes < 0) gQuit = true;
 
-        /* ball's source */
+    /* ball's source */
     srcBall.x = 0;
     srcBall.y = 0;
     srcBall.w = BALL_WIDTH;
@@ -532,7 +580,8 @@ void stageOne(){
     SDL_Delay(2.5);
     if (quantBlocks == 0){
       gPoints += 1000;
-      return;
+      /*return;*/
+      stageTwo();
     }
   }
 }
@@ -619,7 +668,8 @@ void stageTwo(){
     SDL_Delay(2.5);
     if (quantBlocks == 0){
       gPoints += 1000;
-      return;
+      /*return;*/
+      stageThree();
     }
   }
 }
@@ -703,7 +753,8 @@ void stageThree(){
     SDL_Delay(2.5);
     if (quantBlocks == 0){
       gPoints += 1000;
-      return;
+      /*return;*/
+      stageThree();
     }
   }
 }

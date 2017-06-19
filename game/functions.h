@@ -16,6 +16,9 @@ double distance(double, double, double, double);
 void gameOver(OBJECT*, OBJECT*, int*); /* check wheter player loses one life */
 void collisionBar(OBJECT, OBJECT*);
 void keyPressed(OBJECT*, OBJECT*, SDL_Event, int*);
+void menu();
+void options();
+void help();
 void stageOne();
 void stageTwo();
 void stageThree();

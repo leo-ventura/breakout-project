@@ -11,8 +11,6 @@
 #include "functions.h"
 
 int main(int argc, char const *argv[]) {
-  /* local variables */
-
   /* Start up SDL and create window */
   if (!init())  {
       printf("SDL could not be initialized\n");
@@ -22,15 +20,10 @@ int main(int argc, char const *argv[]) {
       printf("Media could not be loaded\n");
     }
     else {
-      /* MAIN MENU CODE HERE */
-      /*menu();*/
-
       gQuit = false;
-      stageOne();
-      stageTwo();
-      stageThree();
-      }
+      menu();
     }
-    closing();
-    return 0;
+  }
+  closing();
+  return 0;
 }
