@@ -9,30 +9,53 @@
 #include "global.h"
 #include "defs.h"
 
-void drawBlock(BLOCK b, SDL_Rect srcBlock) {
-  SDL_Rect dstRect;
-  dstRect.x = b.posX;
-  dstRect.y = b.posY;
-  switch(b.resistance) {
+void drawBlock(BLOCK b) {
+  SDL_Rect srcBlock;
+  SDL_Rect dstBlock;
+  switch (b.resistance) {
     case 1:
-      b.image = gFirstBlockSurface;
+      switch (b.color) {
+        case RED:
+          srcBlock.x = 0;
+          srcBlock.y = 0;
+          break;
+        case GREEN:
+          srcBlock.x = BLOCK_WIDTH;
+          srcBlock.y = 0;
+          break;
+        case YELLOW:
+          srcBlock.x = 0;
+          srcBlock.y = BLOCK_HEIGHT;
+          break;
+        case BLUE:
+          srcBlock.x = BLOCK_WIDTH;
+          srcBlock.y = BLOCK_HEIGHT;
+          break;
+        case PURPLE:
+          srcBlock.x = 0;
+          srcBlock.y = BLOCK_HEIGHT * 2;
+          break;
+      }
       break;
     case 2:
-      b.image = gSecondBlockSurface;
-      break;
-    case 3:
-      b.image = gThirdBlockSurface;
+      srcBlock.x = BLOCK_WIDTH;
+      srcBlock.y = BLOCK_HEIGHT * 2;
       break;
   }
-  SDL_BlitSurface(b.image, &srcBlock, gScreenSurface, &dstRect);
+  srcBlock.w = BLOCK_WIDTH;
+  srcBlock.h = BLOCK_HEIGHT;
+  dstBlock.x = b.posX;
+  dstBlock.y = b.posY;
+  SDL_BlitSurface(b.image, &srcBlock, gScreenSurface, &dstBlock);
 }
 
-BLOCK createBLOCK(int posX, int posY, SDL_Surface *image, int resistance) {
+BLOCK createBLOCK(int posX, int posY, SDL_Surface *image, int resistance, int color) {
   BLOCK b;
   b.posX = posX;
   b.posY = posY;
   b.resistance = resistance;
   b.image = image;
+  b.color = color;
   return b;
 }
 
@@ -170,7 +193,7 @@ void collisionBlock(BLOCK *block, OBJECT *ball, int *quantBlocks) {
 
 
 void collisionBar(OBJECT bar, OBJECT *ball){
-  if (ball->stepY != 0 && ball->stepX != 0){
+  if (ball->stepY != 0){
     if (((ball->posY + BALL_HEIGHT == bar.posY) &&
         (ball->posX + BALL_WIDTH/2 > bar.posX) &&
         (ball->posX + BALL_WIDTH/2 < bar.posX + BAR_WIDTH)) ||
@@ -270,7 +293,7 @@ int init() {
     else {
         /*Create window*/
         gWindow = SDL_CreateWindow("Breakout game. Have fun!", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-            SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+            WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_SHOWN);
         if(gWindow == NULL) {
             printf("Window could not be created! SDL Error: %s\n", SDL_GetError());
             success = false;
@@ -328,12 +351,9 @@ int loadMedia() {
     gBarSurface = loadSurface("../image_library/bar.png");
 
     /* load block surface */
-    gFirstBlockSurface = loadSurface("../image_library/big_brick.png");
-    gSecondBlockSurface = loadSurface("../image_library/yellow_brick.png");
-    gThirdBlockSurface = loadSurface("../image_library/green_brick.png");
+    gBlockSurface = loadSurface("../image_library/block.png");
 
-    if(!gBallSurface || !gFirstBlockSurface || !gBarSurface ||
-      !gSecondBlockSurface || !gThirdBlockSurface) {
+    if(!gBallSurface || !gBlockSurface || !gBarSurface) {
         printf( "Failed to load image! SDL Error: %s\n", SDL_GetError() );
         success = false;
     }
@@ -362,14 +382,8 @@ void closing() {
     gBarSurface = NULL;
 
     /* Free block surface */
-    SDL_FreeSurface(gFirstBlockSurface);
-    gFirstBlockSurface = NULL;
-
-    SDL_FreeSurface(gSecondBlockSurface);
-    gSecondBlockSurface = NULL;
-
-    SDL_FreeSurface(gThirdBlockSurface);
-    gThirdBlockSurface = NULL;
+    SDL_FreeSurface(gBlockSurface);
+    gBlockSurface = NULL;
 
     /*Destroy window*/
     SDL_DestroyWindow( gWindow );
@@ -443,14 +457,19 @@ void help() {
 void stageThree(){
   OBJECT ball;
   OBJECT bar;
-  BLOCK block[ROWS][COLUMNS];
+  BLOCK** block;
   SDL_Rect srcBall, dstBall;
-  SDL_Rect srcBlock;
   SDL_Rect srcBar, dstBar;
   int gameStarted = false; /*verify if space bar have already been pressed to start the game*/
   int i, j;
   SDL_Event e;
   int quantBlocks = 0;
+
+  /*create NULL blocks */
+  block = (BLOCK**) calloc(ROWS, sizeof(BLOCK*));
+  for (i = 0; i < ROWS; i++){
+    block[i] = (BLOCK*) calloc(COLUMNS, sizeof(BLOCK));
+  }
 
   ball = createOBJECT(SCREEN_WIDTH/2 - BALL_WIDTH/2, SCREEN_HEIGHT - 100 - BALL_HEIGHT, 0, 0, gBallSurface);
   /* create bar object */
@@ -458,7 +477,7 @@ void stageThree(){
 
   for (i = 0; i < ROWS ; i++) {
     for (j = 0; j < COLUMNS ; j++) {
-      block[i][j] = createBLOCK( BLOCK_WIDTH * j, BLOCK_HEIGHT * i, gThirdBlockSurface, 3);
+      block[i][j] = createBLOCK( BLOCK_WIDTH * j, BLOCK_HEIGHT * i, gBlockSurface, 3, BLUE);
       quantBlocks++;
     }
   }
@@ -494,15 +513,9 @@ void stageThree(){
     dstBar.x = bar.posX;
     dstBar.y = bar.posY;
 
-    /* block's source */
-    srcBlock.x = 0;
-    srcBlock.y = 0;
-    srcBlock.w = BLOCK_WIDTH;
-    srcBlock.h = BLOCK_HEIGHT;
-
     for (j = 0; j < COLUMNS; j++) {
       for (i = 0; i < ROWS; i++) {
-        if (block[i][j].resistance > 0) drawBlock(block[i][j], srcBlock);
+        if (block[i][j].resistance > 0) drawBlock(block[i][j]);
       }
     }
 
@@ -529,25 +542,38 @@ void stageThree(){
 void stageTwo(){
   OBJECT ball;
   OBJECT bar;
-  BLOCK block[ROWS][COLUMNS];
+  BLOCK** block;
   SDL_Rect srcBall, dstBall;
-  SDL_Rect srcBlock;
   SDL_Rect srcBar, dstBar;
   int gameStarted = false; /*verify if space bar have already been pressed to start the game*/
   int i, j;
   SDL_Event e;
   int quantBlocks = 0;
 
+  /*create NULL blocks */
+  block = (BLOCK**) calloc(ROWS, sizeof(BLOCK*));
+  for (i = 0; i < ROWS; i++){
+    block[i] = (BLOCK*) calloc(COLUMNS, sizeof(BLOCK));
+  }
+
   ball = createOBJECT(SCREEN_WIDTH/2 - BALL_WIDTH/2, SCREEN_HEIGHT - 100 - BALL_HEIGHT, 0, 0, gBallSurface);
   /* create bar object */
   bar = createOBJECT(SCREEN_WIDTH/2 - BAR_WIDTH/2, SCREEN_HEIGHT - 100, 0, 0, gBarSurface);
 
-  for (i = 0; i < ROWS; i++) {
+  for (i = 0; i < 8; i++) {
     for (j = 0; j < COLUMNS; j++) {
-      block[i][j] = createBLOCK( BLOCK_WIDTH * j, BLOCK_HEIGHT * i, gSecondBlockSurface, 2);
+      if ((i%2==0 && j%2==1) || (i%2==1 && j%2==0))
+      block[i][j] = createBLOCK( BLOCK_WIDTH * j, BLOCK_HEIGHT * i, gBlockSurface, 1, rand()%4);
       quantBlocks++;
     }
   }
+  for (j = 0; j < COLUMNS; j++){
+    i = 9;
+    block[i][j] = createBLOCK( BLOCK_WIDTH * j, BLOCK_HEIGHT * i, gBlockSurface, 2, PURPLE);
+    quantBlocks++;
+  }
+
+  printf("%d blocks\n", quantBlocks);
   while (!gQuit){
     while(SDL_PollEvent(&e) != 0) {
         keyPressed(&ball, &bar, e, &gameStarted);
@@ -583,15 +609,9 @@ void stageTwo(){
     dstBar.x = bar.posX;
     dstBar.y = bar.posY;
 
-    /* block's source */
-    srcBlock.x = 0;
-    srcBlock.y = 0;
-    srcBlock.w = BLOCK_WIDTH;
-    srcBlock.h = BLOCK_HEIGHT;
-
     for (j = 0; j < COLUMNS; j++) {
       for (i = 0; i < ROWS; i++) {
-        if (block[i][j].resistance > 0) drawBlock(block[i][j], srcBlock);
+        if (block[i][j].resistance > 0) drawBlock(block[i][j]);
       }
     }
 
@@ -618,25 +638,31 @@ void stageTwo(){
 void stageOne(){
   OBJECT ball;
   OBJECT bar;
-  BLOCK block[ROWS][COLUMNS];
+  BLOCK** block;
   SDL_Rect srcBall, dstBall;
-  SDL_Rect srcBlock;
   SDL_Rect srcBar, dstBar;
-  int gameStarted = false; /*verify if space bar have already been pressed to start the game*/
+  int gameStarted = false; /*verify if space bar has already been pressed to start the game*/
   int i, j;
   SDL_Event e;
   int quantBlocks = 0;
+
+  /*create NULL blocks */
+  block = (BLOCK**) calloc(ROWS, sizeof(BLOCK*));
+  for (i = 0; i < ROWS; i++){
+    block[i] = (BLOCK*) calloc(COLUMNS, sizeof(BLOCK));
+  }
 
   ball = createOBJECT(SCREEN_WIDTH/2 - BALL_WIDTH/2, SCREEN_HEIGHT - 100 - BALL_HEIGHT, 0, 0, gBallSurface);
   /* create bar object */
   bar = createOBJECT(SCREEN_WIDTH/2 - BAR_WIDTH/2, SCREEN_HEIGHT - 100, 0, 0, gBarSurface);
 
-  for (i = 0; i < ROWS; i++) {
-    for (j = 0; j < COLUMNS; j++) {
-      block[i][j] = createBLOCK( BLOCK_WIDTH * j, BLOCK_HEIGHT * i, gFirstBlockSurface, 1);
+  for (i = 0; i < 5; i++) {
+    for (j = 0; j < 2; j++) {
+      block[i][j] = createBLOCK( BLOCK_WIDTH * j, BLOCK_HEIGHT * i, gBlockSurface, 1, i);
       quantBlocks++;
     }
   }
+  printf("%d blocks\n", quantBlocks);
 
   /* Starts game main loop */
   printf("%d Lifes\n", gLifes);
@@ -652,13 +678,6 @@ void stageOne(){
     moveBAR(&bar, &ball, gameStarted);
     moveOBJECT(&ball);
 
-    /*
-    for (j = 0; j < qColumns/4; j++) {
-      for (i = 0; i < qRows; i++) {
-        collisionBlock(block[i][j], &ball, i);
-      }
-    }
-    */
     /* check collision between ball and all the blocks */
     for (i = 0; i < ROWS; i++) {
       for (j = 0; j < COLUMNS; j++) {
@@ -688,15 +707,9 @@ void stageOne(){
     dstBar.x = bar.posX;
     dstBar.y = bar.posY;
 
-    /* block's source */
-    srcBlock.x = 0;
-    srcBlock.y = 0;
-    srcBlock.w = BLOCK_WIDTH;
-    srcBlock.h = BLOCK_HEIGHT;
-
     for (j = 0; j < COLUMNS; j++) {
       for (i = 0; i < ROWS; i++) {
-        if (block[i][j].resistance > 0) drawBlock(block[i][j], srcBlock);
+        if (block[i][j].resistance > 0) drawBlock(block[i][j]);
       }
     }
 

@@ -12,6 +12,7 @@
 
 int main(int argc, char const *argv[]) {
   /* Start up SDL and create window */
+  srand (time(NULL));
   if (!init())  {
       printf("SDL could not be initialized\n");
   }
