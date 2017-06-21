@@ -522,6 +522,7 @@ void stageThree(){
       /*return;*/
       stageThree();
     }
+    if (gPoints%10000 == 0 && gPoints != 0) gLifes++;
   }
 }
 
@@ -610,6 +611,7 @@ void stageTwo(){
       /*return;*/
       stageThree();
     }
+    if (gPoints%10000 == 0 && gPoints != 0) gLifes++;
   }
 }
 
@@ -709,12 +711,17 @@ void stageOne(){
 
     /* it'll be changed later */
     SDL_Delay(2.5);
-    if (quantBlocks == 0){
+    if (quantBlocks == 0) {
       gPoints += 1000;
       /*return;*/
       stageTwo();
     }
+    if (gPoints%10000 == 0 && gPoints != 0) gLifes++;
   }
+}
+
+void ranking() {
+  FILE *parq;
 }
 
 void menu() {
@@ -737,21 +744,24 @@ void menu() {
                 stageOne();
                 break;
               case 1:
+                ranking();
+                break;
+              case 2:
                 /*options = true;*/
                 options();
                 break;
-              case 2:
+              case 3:
                 help();
                 /*help = true;*/
                 break;
             }
           }
           else if (e.key.keysym.sym == SDLK_DOWN) {
-            cursor = (cursor + 1)%3; /* using %3 to make sure the cursor doesn't stop at the top/bottom */
+            cursor = (cursor + 1)%4; /* using %4 to make sure the cursor doesn't stop at the top/bottom */
             printf("cursor em %d\n", cursor);
           }
           else if (e.key.keysym.sym == SDLK_UP) {
-            cursor = (cursor + 2)%3;
+            cursor = (cursor + 3)%4;
             printf("cursor em %d\n", cursor);
           }
           break;
