@@ -15,11 +15,11 @@ SDL_Surface *gMenuSurface = NULL;
 /* Current displayed ball image */
 SDL_Surface *gBallSurface = NULL;
 /* blocks' surface */
-SDL_Surface *gFirstBlockSurface = NULL;
-SDL_Surface *gSecondBlockSurface = NULL;
-SDL_Surface *gThirdBlockSurface = NULL;
+SDL_Surface *gBlockSurface = NULL;
 /* bar's surface */
 SDL_Surface *gBarSurface = NULL;
+/* npcBar's surface */
+SDL_Surface *gNpcBarSurface = NULL;
 /*sounds */
 Mix_Chunk *gCollisionBarSound = NULL;
 Mix_Chunk *gCollisionBlockSound = NULL;
