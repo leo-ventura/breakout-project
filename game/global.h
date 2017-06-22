@@ -1,5 +1,3 @@
-#include "defs.h"
-
 #ifndef GLOBAL_H
 #define GLOBAL_H
 
