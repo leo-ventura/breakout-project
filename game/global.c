@@ -11,7 +11,7 @@ int gLifes = 3;
 SDL_Window *gWindow = NULL;
 /* The surface contained by the window */
 SDL_Surface *gScreenSurface = NULL;
-/* The surface displaying the menu */
+/* The surface we'll be displaying the menu */
 SDL_Surface *gMenuSurface = NULL;
 /* Current displayed ball image */
 SDL_Surface *gBallSurface = NULL;
@@ -29,6 +29,12 @@ Mix_Chunk *gDestroyBlockSound = NULL;
 TTF_Font *gFont = NULL;
 SDL_Surface *gRankingText = NULL;
 SDL_Surface *gMenuText = NULL;
+SDL_Surface *gInGamePoints = NULL;
 SDL_Surface *gInGameLife = NULL;
 SDL_Surface *gInGameBlocks = NULL;
 SDL_Surface *gInGameOptions = NULL;
+SDL_Surface *gStartSelected = NULL;
+SDL_Surface *gRankingSelected = NULL;
+SDL_Surface *gSettingsSelected = NULL;
+SDL_Surface *gHelpSelected = NULL;
+SDL_Surface *gExitSelected = NULL;
