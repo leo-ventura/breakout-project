@@ -1,6 +1,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_mixer.h>
+#include <SDL2/SDL_ttf.h>
 #include "defs.h"
 
 int gQuit = false;
@@ -24,3 +25,7 @@ SDL_Surface *gNpcBarSurface = NULL;
 Mix_Chunk *gCollisionBarSound = NULL;
 Mix_Chunk *gCollisionBlockSound = NULL;
 Mix_Chunk *gDestroyBlockSound = NULL;
+/* fonts */
+TTF_Font *gFont = NULL;
+SDL_Surface *gRankingText = NULL;
+SDL_Surface *gMenuText = NULL;

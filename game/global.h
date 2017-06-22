@@ -1,3 +1,5 @@
+#include "defs.h"
+
 #ifndef GLOBAL_H
 #define GLOBAL_H
 
@@ -14,5 +16,8 @@ extern SDL_Surface *gNpcBarSurface;
 extern Mix_Chunk *gCollisionBarSound;
 extern Mix_Chunk *gCollisionBlockSound;
 extern Mix_Chunk *gDestroyBlockSound;
+extern TTF_Font *gFont;
+extern SDL_Surface *gRankingText;
+extern SDL_Surface *gMenuText;
 
 #endif
