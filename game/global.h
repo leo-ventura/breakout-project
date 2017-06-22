@@ -17,5 +17,8 @@ extern Mix_Chunk *gDestroyBlockSound;
 extern TTF_Font *gFont;
 extern SDL_Surface *gRankingText;
 extern SDL_Surface *gMenuText;
+extern SDL_Surface *gInGameLife;
+extern SDL_Surface *gInGameBlocks;
+extern SDL_Surface *gInGameOptions;
 
 #endif
