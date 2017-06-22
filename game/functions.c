@@ -324,7 +324,6 @@ void gameOver(OBJECT *ball, OBJECT *bar, int *gameStarted){
     bar->posY = SCREEN_HEIGHT - 100;
     bar->stepX = 0;
     bar->stepY = 0;
-    printf("%d Lifes\n", gLifes);
   }
 }
 
@@ -484,6 +483,12 @@ int loadMedia() {
         success = false;
     }
 
+    gStartSelected = loadSurface("../image_library/start_selected.png");
+    gRankingSelected = loadSurface("../image_library/Ranking_selected.png");
+    gSettingsSelected = loadSurface("../image_library/settings_selected.png");
+    gHelpSelected = loadSurface("../image_library/Help_selected.png");
+    gExitSelected = loadSurface("../image_library/Exit_selected.png");
+
     /*load sounds */
     gCollisionBarSound = Mix_LoadWAV("../sound_library/collisionBar.wav");
     gCollisionBlockSound = Mix_LoadWAV("../sound_library/collisionBlock.wav");
@@ -502,13 +507,36 @@ void closing() {
     SDL_FreeSurface(gBallSurface);
     gBallSurface = NULL;
 
+    SDL_FreeSurface(gMenuSurface);
+    gMenuSurface = NULL;
+
+    SDL_FreeSurface(gInGameLife);
+    SDL_FreeSurface(gInGameBlocks);
+    SDL_FreeSurface(gInGameOptions);
+    gInGameOptions = NULL;
+    gInGameBlocks = NULL;
+    gInGameLife = NULL;
+
     /* Close font */
     TTF_CloseFont(gFont);
     gFont = NULL;
 
+    SDL_FreeSurface(gStartSelected);
+    gStartSelected = NULL;
+    SDL_FreeSurface(gRankingSelected);
+    gRankingSelected = NULL;
+    SDL_FreeSurface(gSettingsSelected);
+    gSettingsSelected = NULL;
+    SDL_FreeSurface(gHelpSelected);
+    gHelpSelected = NULL;
+    SDL_FreeSurface(gExitSelected);
+    gExitSelected = NULL;
+
     /* Free fonts' surface */
     SDL_FreeSurface(gRankingText);
     SDL_FreeSurface(gMenuText);
+    gRankingText = NULL;
+    gMenuText = NULL;
 
     /* Free bar image */
     SDL_FreeSurface(gBarSurface);
@@ -522,8 +550,11 @@ void closing() {
     SDL_FreeSurface(gNpcBarSurface);
     gNpcBarSurface = NULL;
 
+    SDL_FreeSurface(gScreenSurface);
+    gScreenSurface = NULL;
+
     /*Destroy window*/
-    SDL_DestroyWindow( gWindow );
+    SDL_DestroyWindow(gWindow);
     gWindow = NULL;
 
     /*Free sounds */
@@ -739,11 +770,24 @@ void stageTwo() {
   SDL_Rect srcBall, dstBall;
   SDL_Rect srcBar, dstBar;
   SDL_Rect dstInGameMenu; /* menu dimensions */
-  /*SDL_Color textcolor = {255, 255, 255}; *//* sets textcolor as white */
+  SDL_Color textcolor = {255, 255, 255}; /* sets textcolor as white */
+  SDL_Rect dstPoints;
+  char points[40];
+  char npoints[10];
+  SDL_Rect dstLifes;
+  char lifes[40];
+  char nlifes[4];
+  SDL_Rect dstBlocks;
+  char blocks[40];
+  char nblocks[5];
   int gameStarted = false; /*verify if space bar have already been pressed to start the game*/
   int i, j;
   SDL_Event e;
   int quantBlocks = 0;
+
+  if (!loadInGameMenu()) {
+    printf("Unable to load text media!\n");
+  }
 
   /*create NULL blocks */
   block = (BLOCK**) calloc(ROWS, sizeof(BLOCK*));
@@ -784,6 +828,21 @@ void stageTwo() {
     dstInGameMenu.w = WINDOW_WIDTH - SCREEN_WIDTH;
     SDL_FillRect(gScreenSurface, &dstInGameMenu, SDL_MapRGB(gScreenSurface->format, 0x00, 0x00, 0x00));
 
+    strcpy(points, "Points: ");
+    sprintf(npoints, "%d", gPoints);
+    strcat(points, npoints);
+    gInGamePoints = loadRenderedText(points, textcolor);
+
+    strcpy(lifes, "Lifes: ");
+    sprintf(nlifes, "%d", gLifes);
+    strcat(lifes, nlifes);
+    gInGameLife = loadRenderedText(lifes, textcolor);
+
+    strcpy(blocks, "Blocks left: ");
+    sprintf(nblocks, "%d", quantBlocks);
+    strcat(blocks, nblocks);
+    gInGameBlocks = loadRenderedText(blocks, textcolor);
+
     moveBAR(&bar, &ball, gameStarted);
     moveOBJECT(&ball);
 
@@ -813,6 +872,15 @@ void stageTwo() {
     dstBar.x = bar.posX;
     dstBar.y = bar.posY;
 
+    dstPoints.x = SCREEN_WIDTH + 30;
+    dstPoints.y = 30;
+
+    dstLifes.x = SCREEN_WIDTH + 30;
+    dstLifes.y = 130;
+
+    dstBlocks.x = SCREEN_WIDTH + 30;
+    dstBlocks.y = 230;
+
     for (j = 0; j < COLUMNS; j++) {
       for (i = 0; i < ROWS; i++) {
         if (block[i][j].resistance > 0) drawBlock(block[i][j]);
@@ -820,7 +888,10 @@ void stageTwo() {
     }
 
     if(SDL_BlitSurface(ball.image, &srcBall, gScreenSurface, &dstBall) < 0 ||
-      SDL_BlitSurface(bar.image, &srcBar, gScreenSurface, &dstBar) < 0) {
+      SDL_BlitSurface(bar.image, &srcBar, gScreenSurface, &dstBar) < 0 ||
+      SDL_BlitSurface(gInGameLife, NULL, gScreenSurface, &dstLifes) < 0 ||
+      SDL_BlitSurface(gInGameBlocks, NULL, gScreenSurface, &dstBlocks) < 0 ||
+      SDL_BlitSurface(gInGamePoints, NULL, gScreenSurface, &dstPoints) < 0) {
         printf("SDL could not blit! SDL Error: %s\n", SDL_GetError());
         gQuit = true;
     }
@@ -847,8 +918,15 @@ void stageOne() {
   SDL_Rect srcBar, dstBar;
   SDL_Rect dstInGameMenu; /* menu dimensions */
   SDL_Color textcolor = {255, 255, 255}; /* sets textcolor as white */
+  SDL_Rect dstPoints;
+  char points[40];
+  char npoints[10];
   SDL_Rect dstLifes;
   char lifes[40];
+  char nlifes[4];
+  SDL_Rect dstBlocks;
+  char blocks[40];
+  char nblocks[5];
   int gameStarted = false; /*verify if space bar has already been pressed to start the game*/
   int i, j;
   SDL_Event e;
@@ -876,13 +954,6 @@ void stageOne() {
     }
   }
 
-  strcpy(lifes, "Lifes: ");
-  gInGameLife = loadRenderedText(lifes, textcolor);
-  /*if (!gMenuText) {
-    printf("Failed to render text! Error: %s\n", TTF_GetError());
-    gQuit = true;
-  }*/
-
   /* Starts game main loop */
   while (!gQuit){
     /* verifies if any key have been pressed */
@@ -896,6 +967,21 @@ void stageOne() {
     dstInGameMenu.h = WINDOW_HEIGHT;
     dstInGameMenu.w = WINDOW_WIDTH - SCREEN_WIDTH;
     SDL_FillRect(gScreenSurface, &dstInGameMenu, SDL_MapRGB(gScreenSurface->format, 0x00, 0x00, 0x00));
+
+    strcpy(points, "Points: ");
+    sprintf(npoints, "%d", gPoints);
+    strcat(points, npoints);
+    gInGamePoints = loadRenderedText(points, textcolor);
+
+    strcpy(lifes, "Lifes: ");
+    sprintf(nlifes, "%d", gLifes);
+    strcat(lifes, nlifes);
+    gInGameLife = loadRenderedText(lifes, textcolor);
+
+    strcpy(blocks, "Blocks left: ");
+    sprintf(nblocks, "%d", quantBlocks);
+    strcat(blocks, nblocks);
+    gInGameBlocks = loadRenderedText(blocks, textcolor);
 
     moveBAR(&bar, &ball, gameStarted);
     moveOBJECT(&ball);
@@ -929,8 +1015,14 @@ void stageOne() {
     dstBar.x = bar.posX;
     dstBar.y = bar.posY;
 
+    dstPoints.x = SCREEN_WIDTH + 30;
+    dstPoints.y = 30;
+
     dstLifes.x = SCREEN_WIDTH + 30;
-    dstLifes.y = 30;
+    dstLifes.y = 130;
+
+    dstBlocks.x = SCREEN_WIDTH + 30;
+    dstBlocks.y = 230;
 
     for (j = 0; j < COLUMNS; j++) {
       for (i = 0; i < ROWS; i++) {
@@ -940,7 +1032,9 @@ void stageOne() {
 
     if(SDL_BlitSurface(ball.image, &srcBall, gScreenSurface, &dstBall) < 0 ||
       SDL_BlitSurface(bar.image, &srcBar, gScreenSurface, &dstBar) < 0 ||
-      SDL_BlitSurface(gInGameLife, NULL, gScreenSurface, &dstLifes) < 0) {
+      SDL_BlitSurface(gInGameLife, NULL, gScreenSurface, &dstLifes) < 0 ||
+      SDL_BlitSurface(gInGameBlocks, NULL, gScreenSurface, &dstBlocks) < 0 ||
+      SDL_BlitSurface(gInGamePoints, NULL, gScreenSurface, &dstPoints) < 0) {
         printf("SDL could not blit! SDL Error: %s\n", SDL_GetError());
         gQuit = true;
     }
@@ -963,7 +1057,7 @@ void ranking() {
   SDL_Rect dstRanking;
   SDL_Event e;
   int returning = false;
-  SDL_Color textcolor = {0, 0, 0};
+  SDL_Color textcolor = {255, 255, 255};
 
   gRankingText = loadRenderedText("Ranking", textcolor);
   if (!gRankingText) {
@@ -988,7 +1082,7 @@ void ranking() {
               returning = true;
             }
       }
-      SDL_FillRect(gScreenSurface, NULL, SDL_MapRGB(gScreenSurface->format, 0x66, 0xFF, 0xFF));
+      SDL_FillRect(gScreenSurface, NULL, SDL_MapRGB(gScreenSurface->format, 0x00, 0x00, 0x00));
       if (SDL_BlitSurface(gRankingText, NULL, gScreenSurface, &dstRanking) < 0) {
         printf("Error while blitting ranking surface!\n");
       }
@@ -1034,22 +1128,39 @@ void menu() {
                 help();
                 /*help = true;*/
                 break;
+              case 4:
+                gQuit = true;
+                break;
             }
           }
           else if (e.key.keysym.sym == SDLK_ESCAPE) {
             gQuit = true;
           }
           else if (e.key.keysym.sym == SDLK_DOWN) {
-            cursor = (cursor + 1)%4; /* using %4 to make sure the cursor doesn't stop at the top/bottom */
+            cursor = (cursor + 1)%5; /* using %4 to make sure the cursor doesn't stop at the top/bottom */
           }
           else if (e.key.keysym.sym == SDLK_UP) {
-            cursor = (cursor + 3)%4;
+            cursor = (cursor + 4)%5;
           }
           break;
       }
     SDL_FillRect(gScreenSurface, NULL, SDL_MapRGB(gScreenSurface->format, 0x00, 0x00, 0x00));
-    if (SDL_BlitSurface(gMenuSurface, NULL, gScreenSurface, &dstMenu) < 0) {
-      printf("Error while blitting menu surface\n");
+    switch(cursor) {
+      case 0:
+        SDL_BlitSurface(gStartSelected, NULL, gScreenSurface, &dstMenu);
+        break;
+      case 1:
+        SDL_BlitSurface(gRankingSelected, NULL, gScreenSurface, &dstMenu);
+        break;
+      case 2:
+        SDL_BlitSurface(gSettingsSelected, NULL, gScreenSurface, &dstMenu);
+        break;
+      case 3:
+        SDL_BlitSurface(gHelpSelected, NULL, gScreenSurface, &dstMenu);
+        break;
+      case 4:
+        SDL_BlitSurface(gExitSelected, NULL, gScreenSurface, &dstMenu);
+        break;
     }
     SDL_UpdateWindowSurface(gWindow);
     }
