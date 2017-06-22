@@ -1,6 +1,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_mixer.h>
+#include <SDL2/SDL_ttf.h>
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
@@ -281,9 +282,8 @@ void collisionBar(OBJECT bar, OBJECT *ball){
            Mix_PlayChannel(-1, gCollisionBarSound, 0);
     }
   }
-
-
 }
+
 void moveOBJECT(OBJECT *p) {
     p->posX += p->stepX;
     p->posY += p->stepY;
@@ -328,8 +328,6 @@ void gameOver(OBJECT *ball, OBJECT *bar, int *gameStarted){
   }
 }
 
-
-
 void moveBAR(OBJECT *p, OBJECT *ball, int gameStarted) {
     if ((p->posX + BAR_WIDTH >= SCREEN_WIDTH) && (p->stepX > 0) ) {
         p->stepX = 0;
@@ -363,6 +361,11 @@ int init() {
     srand(time(NULL));
     Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 4096);
     Mix_AllocateChannels(16);
+
+    if (TTF_Init() == -1) {
+      printf("TTF unable to initialize! Error: %s\n", TTF_GetError());
+      success = false;
+    }
 
     /*Initialize SDL*/
     if( SDL_Init( SDL_INIT_VIDEO ) < 0 ) {
@@ -417,6 +420,47 @@ SDL_Surface* loadSurface( char *path ) {
   return optimizedSurface;
 }
 
+SDL_Surface *loadRenderedText(char *text, SDL_Color textcolor) {
+  SDL_Surface *optimizedTextSurface;
+
+  /* free the texture from other textures */
+  /*freeTexture(texture);*/
+
+  SDL_Surface *textSurface = TTF_RenderText_Solid(gFont, text, textcolor);
+  if (!textSurface) {
+    printf("Unable to render text. Error: %s\n", TTF_GetError());
+    return false;
+  }
+
+  optimizedTextSurface = SDL_ConvertSurface(textSurface, gScreenSurface->format, 0);
+  if (!optimizedTextSurface) {
+    printf("Unable to create texture. Error: %s\n", TTF_GetError());
+    return false;
+  }
+  SDL_FreeSurface(textSurface);
+
+  return optimizedTextSurface;
+}
+
+int loadTextMedia() {
+  int success = true;
+/*  SDL_Color blacktextcolor = {0, 0, 0};*/
+  SDL_Color whitetextcolor = {255, 255, 255};
+
+  gFont = TTF_OpenFont("../image_library/alagard_BitFont.ttf", 35);
+  if (!gFont) {
+    printf("Failed to load font! Error: %s\n", TTF_GetError());
+    success = false;
+  }
+  gRankingText = loadRenderedText("Ranking", whitetextcolor);
+  gMenuText = loadRenderedText("Menu", whitetextcolor);
+  if (!gRankingText || !gMenuText) {
+    printf("Failed to render text! Error: %s\n", TTF_GetError());
+    success = false;
+  }
+  return success;
+}
+
 int loadMedia() {
     /*Loading success flag*/
     int success = true;
@@ -433,7 +477,7 @@ int loadMedia() {
     gBlockSurface = loadSurface("../image_library/block.png");
 
     /* non-player bar */
-    gNpcBarSurface = loadSurface("../image_library/npcBar.png");
+    gNpcBarSurface = loadSurface("../image_library/bar.png");
 
     if(!gBallSurface || !gBlockSurface || !gBarSurface || !gNpcBarSurface) {
         printf( "Failed to load image! SDL Error: %s\n", SDL_GetError() );
@@ -453,11 +497,18 @@ int loadMedia() {
     return success;
 }
 
-
 void closing() {
     /*Free ball image*/
     SDL_FreeSurface(gBallSurface);
     gBallSurface = NULL;
+
+    /* Close font */
+    TTF_CloseFont(gFont);
+    gFont = NULL;
+
+    /* Free fonts' surface */
+    SDL_FreeSurface(gRankingText);
+    SDL_FreeSurface(gMenuText);
 
     /* Free bar image */
     SDL_FreeSurface(gBarSurface);
@@ -481,6 +532,7 @@ void closing() {
     Mix_FreeChunk(gDestroyBlockSound);
 
     /*Quit SDL subsystems*/
+    TTF_Quit();
     IMG_Quit();
     SDL_Quit();
 }
@@ -540,7 +592,7 @@ void help() {
   printf("Entrei em Help\n");
 }
 
-void stageThree(){
+void stageThree() {
   OBJECT ball;
   OBJECT bar;
   BLOCK** block;
@@ -674,7 +726,7 @@ void stageThree(){
   }
 }
 
-void stageTwo(){
+void stageTwo() {
   OBJECT ball;
   OBJECT bar;
   BLOCK** block;
@@ -774,7 +826,7 @@ void stageTwo(){
   }
 }
 
-void stageOne(){
+void stageOne() {
   OBJECT ball;
   OBJECT bar;
   BLOCK** block;
@@ -873,17 +925,67 @@ void stageOne(){
 }
 
 void ranking() {
-  FILE *parq;
+  SDL_Rect dstRanking;
+  SDL_Event e;
+  int returning = false;
+
+  dstRanking.x = WINDOW_WIDTH/2 - 100;
+  dstRanking.y = 100;
+
+  while(!gQuit && returning == false) {
+    while (SDL_PollEvent(&e) != 0) {
+      switch(e.type) {
+          case SDL_QUIT:
+            gQuit = true;
+            break;
+          case SDL_KEYDOWN:
+            if (e.key.keysym.sym == SDLK_ESCAPE) {
+                gQuit = true;
+            }
+            else if (e.key.keysym.sym == SDLK_LEFT) {
+              returning = true;
+            }
+      }
+      SDL_FillRect(gScreenSurface, NULL, SDL_MapRGB(gScreenSurface->format, 0x66, 0xFF, 0xFF));
+      if (SDL_BlitSurface(gRankingText, NULL, gScreenSurface, &dstRanking) < 0) {
+        printf("Error while blitting ranking surface!\n");
+      }
+      SDL_UpdateWindowSurface(gWindow);
+    }
+  }
 }
 
 void menu() {
   unsigned int cursor = 0;
-  /*int startGame = false;
-  int options = false;
-  int help = false;*/
   SDL_Event e;
+  SDL_Rect dstMenu;
+/*  SDL_Rect dstStart;*/
+  SDL_Rect dstRanking;
+/*  SDL_Rect dstOptions;
+  SDL_Rect dstHelp;*/
+
+  dstMenu.x = WINDOW_WIDTH/2 - 100;
+  dstMenu.y = 100;
+
+  /*dstStart.x = WINDOW_WIDTH/2 - 100;
+  dstStart.y = 200;*/
+
+  dstRanking.x = WINDOW_WIDTH/2 - 100;
+  dstRanking.y = 300;
+
+/*  dstOptions.x = WINDOW_WIDTH/2 - 100;
+  dstOptions.y = 400;
+
+  dstHelp.x = WINDOW_WIDTH/2 - 100;
+  dstHelp.y = 500;
+*/
   /* carregar midia do menu */
-  while (!gQuit)
+  if (!loadTextMedia()) {
+    printf("Could not load text media!\n");
+    gQuit = true;
+  }
+
+  while (!gQuit) {
     while (SDL_PollEvent(&e) != 0) {
       switch(e.type) {
         case SDL_QUIT:
@@ -908,6 +1010,9 @@ void menu() {
                 break;
             }
           }
+          else if (e.key.keysym.sym == SDLK_ESCAPE) {
+            gQuit = true;
+          }
           else if (e.key.keysym.sym == SDLK_DOWN) {
             cursor = (cursor + 1)%4; /* using %4 to make sure the cursor doesn't stop at the top/bottom */
             printf("cursor em %d\n", cursor);
@@ -918,5 +1023,12 @@ void menu() {
           }
           break;
       }
+    SDL_FillRect(gScreenSurface, NULL, SDL_MapRGB(gScreenSurface->format, 0x00, 0x00, 0x00));
+    if (SDL_BlitSurface(gMenuText, NULL, gScreenSurface, &dstMenu) < 0 ||
+        SDL_BlitSurface(gRankingText, NULL, gScreenSurface, &dstRanking) < 0) {
+      printf("Error while blitting menu surface\n");
     }
+    SDL_UpdateWindowSurface(gWindow);
+    }
+  }
 }
