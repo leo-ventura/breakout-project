@@ -8,10 +8,12 @@ void closing();
 SDL_Surface* loadSurface(char*); /* Loads individual image */
 OBJECT createOBJECT(double, double, double, double, SDL_Surface*);
 void moveOBJECT(OBJECT*);
+void moveNPCBAR(OBJECT*);
 void moveBAR(OBJECT*, OBJECT*, int );
 BLOCK createBLOCK(int, int, int, int, SDL_Surface*);
 void drawBlock(BLOCK);
 void collisionBlock(BLOCK*, OBJECT*, int*);
+void collisionNpcBar(OBJECT, OBJECT*);
 double distance(double, double, double, double);
 void gameOver(OBJECT*, OBJECT*, int*); /* check wheter player loses one life */
 void collisionBar(OBJECT, OBJECT*);
@@ -23,5 +25,7 @@ void help();
 void stageOne();
 void stageTwo();
 void stageThree();
+int loadTextMedia();
+int loadRenderedText(char *, SDL_Color);
 
 #endif

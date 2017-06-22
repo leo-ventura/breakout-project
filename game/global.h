@@ -8,12 +8,14 @@ extern SDL_Window *gWindow;
 extern SDL_Surface *gScreenSurface;
 extern SDL_Surface *gMenuSurface;
 extern SDL_Surface *gBallSurface;
-extern SDL_Surface *gFirstBlockSurface;
-extern SDL_Surface *gSecondBlockSurface;
-extern SDL_Surface *gThirdBlockSurface;
+extern SDL_Surface *gBlockSurface;
 extern SDL_Surface *gBarSurface;
+extern SDL_Surface *gNpcBarSurface;
 extern Mix_Chunk *gCollisionBarSound;
 extern Mix_Chunk *gCollisionBlockSound;
 extern Mix_Chunk *gDestroyBlockSound;
+extern TTF_Font *gFont;
+extern SDL_Surface *gRankingText;
+extern SDL_Surface *gMenuText;
 
 #endif

@@ -1,6 +1,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_mixer.h>
+#include <SDL2/SDL_ttf.h>
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
@@ -191,6 +192,71 @@ void collisionBlock(BLOCK *block, OBJECT *ball, int *quantBlocks) {
   }
 }
 
+void collisionNpcBar(OBJECT bar, OBJECT *ball) {
+  /* up and down */
+  if (((ball->posY == bar.posY + BAR_HEIGHT) ||
+      (ball->posY + BALL_HEIGHT == bar.posY)) &&
+      (ball->posX + BALL_WIDTH/2 > bar.posX) &&
+      (ball->posX + BALL_WIDTH/2 < bar.posX + BAR_WIDTH)){
+        ball->stepY *= -1;
+        ball->posY += ball->stepY;
+  }
+  /* right and left */
+  else if (((ball->posX <= bar.posX + BAR_WIDTH && ball->posX > bar.posX) ||
+       (ball->posX + BALL_WIDTH >= bar.posX && ball->posX + BALL_WIDTH < bar.posX + BAR_WIDTH )) &&
+       (ball->posY + BALL_HEIGHT/2 > bar.posY) &&
+       (ball->posY + BALL_HEIGHT/2 < bar.posY + BAR_HEIGHT)){
+          ball->stepX *= -1;
+          ball->posX += ball->stepX;
+  }
+  /* upper left */
+  else if (distance(ball->posX + BALL_WIDTH/2, ball->posY + BALL_HEIGHT/2, bar.posX, bar.posY) < BALL_WIDTH/2){
+    if (ball->stepX > 0) {
+      ball->stepX *= -1;
+    }
+    if (ball->stepY > 0) {
+      ball->stepY *= -1;
+    }
+    ball->posX += ball->stepX;
+    ball->posY += ball->stepY;
+  }
+
+  /* lower left */
+  else if (distance(ball->posX + BALL_WIDTH/2, ball->posY + BALL_HEIGHT/2, bar.posX, bar.posY + BAR_HEIGHT) < BALL_WIDTH/2){
+    if (ball->stepX > 0) {
+      ball->stepX *= -1;
+    }
+    if (ball->stepY < 0) {
+      ball->stepY *= -1;
+    }
+    ball->posX += ball->stepX;
+    ball->posY += ball->stepY;
+  }
+
+  /* lower right */
+  else if (distance(ball->posX + BALL_WIDTH/2, ball->posY + BALL_HEIGHT/2, bar.posX + BAR_WIDTH, bar.posY + BAR_HEIGHT) < BALL_WIDTH/2){
+    if (ball->stepX < 0) {
+      ball->stepX *= -1;
+    }
+    if (ball->stepY < 0) {
+      ball->stepY *= -1;
+    }
+    ball->posX += ball->stepX;
+    ball->posY += ball->stepY;
+  }
+
+  /* upper right */
+  else if (distance(ball->posX + BALL_WIDTH/2, ball->posY + BALL_HEIGHT/2, bar.posX + BAR_WIDTH, bar.posY) < BALL_WIDTH/2){
+    if (ball->stepX < 0) {
+      ball->stepX *= -1;
+    }
+    if (ball->stepY > 0) {
+      ball->stepY *= -1;
+    }
+    ball->posX += ball->stepX;
+    ball->posY += ball->stepY;
+  }
+}
 
 void collisionBar(OBJECT bar, OBJECT *ball){
   if (ball->stepY != 0){
@@ -216,14 +282,27 @@ void collisionBar(OBJECT bar, OBJECT *ball){
            Mix_PlayChannel(-1, gCollisionBarSound, 0);
     }
   }
-
-
 }
+
 void moveOBJECT(OBJECT *p) {
     p->posX += p->stepX;
     p->posY += p->stepY;
 
     if ((p->posX + BALL_WIDTH > SCREEN_WIDTH) || (p->posX < 0) ) {
+        p->stepX = -p->stepX;
+        p->posX += p->stepX;
+    }
+    if (p->posY < 0) {
+        p->stepY = -p->stepY;
+        p->posY += p->stepY;
+    }
+}
+
+void moveNPCBAR(OBJECT *p) {
+    p->posX += p->stepX;
+    p->posY += p->stepY;
+
+    if ((p->posX + BAR_WIDTH > SCREEN_WIDTH) || (p->posX < 0) ) {
         p->stepX = -p->stepX;
         p->posX += p->stepX;
     }
@@ -248,8 +327,6 @@ void gameOver(OBJECT *ball, OBJECT *bar, int *gameStarted){
     printf("%d Lifes\n", gLifes);
   }
 }
-
-
 
 void moveBAR(OBJECT *p, OBJECT *ball, int gameStarted) {
     if ((p->posX + BAR_WIDTH >= SCREEN_WIDTH) && (p->stepX > 0) ) {
@@ -284,6 +361,11 @@ int init() {
     srand(time(NULL));
     Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 4096);
     Mix_AllocateChannels(16);
+
+    if (TTF_Init() == -1) {
+      printf("TTF unable to initialize! Error: %s\n", TTF_GetError());
+      success = false;
+    }
 
     /*Initialize SDL*/
     if( SDL_Init( SDL_INIT_VIDEO ) < 0 ) {
@@ -338,6 +420,47 @@ SDL_Surface* loadSurface( char *path ) {
   return optimizedSurface;
 }
 
+SDL_Surface *loadRenderedText(char *text, SDL_Color textcolor) {
+  SDL_Surface *optimizedTextSurface;
+
+  /* free the texture from other textures */
+  /*freeTexture(texture);*/
+
+  SDL_Surface *textSurface = TTF_RenderText_Solid(gFont, text, textcolor);
+  if (!textSurface) {
+    printf("Unable to render text. Error: %s\n", TTF_GetError());
+    return false;
+  }
+
+  optimizedTextSurface = SDL_ConvertSurface(textSurface, gScreenSurface->format, 0);
+  if (!optimizedTextSurface) {
+    printf("Unable to create texture. Error: %s\n", TTF_GetError());
+    return false;
+  }
+  SDL_FreeSurface(textSurface);
+
+  return optimizedTextSurface;
+}
+
+int loadTextMedia() {
+  int success = true;
+/*  SDL_Color blacktextcolor = {0, 0, 0};*/
+  SDL_Color whitetextcolor = {255, 255, 255};
+
+  gFont = TTF_OpenFont("../image_library/alagard_BitFont.ttf", 35);
+  if (!gFont) {
+    printf("Failed to load font! Error: %s\n", TTF_GetError());
+    success = false;
+  }
+  gRankingText = loadRenderedText("Ranking", whitetextcolor);
+  gMenuText = loadRenderedText("Menu", whitetextcolor);
+  if (!gRankingText || !gMenuText) {
+    printf("Failed to render text! Error: %s\n", TTF_GetError());
+    success = false;
+  }
+  return success;
+}
+
 int loadMedia() {
     /*Loading success flag*/
     int success = true;
@@ -353,7 +476,10 @@ int loadMedia() {
     /* load block surface */
     gBlockSurface = loadSurface("../image_library/block.png");
 
-    if(!gBallSurface || !gBlockSurface || !gBarSurface) {
+    /* non-player bar */
+    gNpcBarSurface = loadSurface("../image_library/bar.png");
+
+    if(!gBallSurface || !gBlockSurface || !gBarSurface || !gNpcBarSurface) {
         printf( "Failed to load image! SDL Error: %s\n", SDL_GetError() );
         success = false;
     }
@@ -371,11 +497,18 @@ int loadMedia() {
     return success;
 }
 
-
 void closing() {
     /*Free ball image*/
     SDL_FreeSurface(gBallSurface);
     gBallSurface = NULL;
+
+    /* Close font */
+    TTF_CloseFont(gFont);
+    gFont = NULL;
+
+    /* Free fonts' surface */
+    SDL_FreeSurface(gRankingText);
+    SDL_FreeSurface(gMenuText);
 
     /* Free bar image */
     SDL_FreeSurface(gBarSurface);
@@ -384,6 +517,10 @@ void closing() {
     /* Free block surface */
     SDL_FreeSurface(gBlockSurface);
     gBlockSurface = NULL;
+
+    /* Free npcBar surface */
+    SDL_FreeSurface(gNpcBarSurface);
+    gNpcBarSurface = NULL;
 
     /*Destroy window*/
     SDL_DestroyWindow( gWindow );
@@ -395,6 +532,7 @@ void closing() {
     Mix_FreeChunk(gDestroyBlockSound);
 
     /*Quit SDL subsystems*/
+    TTF_Quit();
     IMG_Quit();
     SDL_Quit();
 }
@@ -454,7 +592,7 @@ void help() {
   printf("Entrei em Help\n");
 }
 
-void stageThree(){
+void stageThree() {
   OBJECT ball;
   OBJECT bar;
   BLOCK** block;
@@ -464,6 +602,9 @@ void stageThree(){
   int i, j;
   SDL_Event e;
   int quantBlocks = 0;
+  OBJECT npcBar;
+  SDL_Rect srcNpcBar, dstNpcBar;
+
 
   /*create NULL blocks */
   block = (BLOCK**) calloc(ROWS, sizeof(BLOCK*));
@@ -472,20 +613,54 @@ void stageThree(){
   }
 
   ball = createOBJECT(SCREEN_WIDTH/2 - BALL_WIDTH/2, SCREEN_HEIGHT - 100 - BALL_HEIGHT, 0, 0, gBallSurface);
-  /* create bar object */
   bar = createOBJECT(SCREEN_WIDTH/2 - BAR_WIDTH/2, SCREEN_HEIGHT - 100, 0, 0, gBarSurface);
+  /* create a non-player Bar */
+  npcBar = createOBJECT(SCREEN_WIDTH/2 - BAR_WIDTH/2, SCREEN_HEIGHT - 180, 1.3, 0, gNpcBarSurface);
 
   for (i = 0; i < ROWS ; i++) {
     for (j = 0; j < COLUMNS ; j++) {
-      block[i][j] = createBLOCK( BLOCK_WIDTH * j, BLOCK_HEIGHT * i, gBlockSurface, 3, BLUE);
-      quantBlocks++;
+      if (((i == 1 || i == 6) && j>0 && j<6) ||
+         ((j == 1 || j == 5) && i > 1 && i < 6)){
+        block[i][j] = createBLOCK( BLOCK_WIDTH * j, BLOCK_HEIGHT * i, gBlockSurface, 2, rand()%5);
+        quantBlocks++;
+      }
+      if (i > 1 && i < 6 && j > 1 && j < 5){
+        if (((i == 3 || i == 4) && (j == 2 || j == 4))) {
+          block[i][j] = createBLOCK( BLOCK_WIDTH * j, BLOCK_HEIGHT * i, gBlockSurface, 1, RED);
+          quantBlocks++;
+        }
+        else {
+          block[i][j] = createBLOCK( BLOCK_WIDTH * j, BLOCK_HEIGHT * i, gBlockSurface, 2, rand()%5);
+          quantBlocks++;
+        }
+      }
+      if (i == 7 || i == 8 || i == 9) {
+        if ((i+j)%2 == 1) {
+          block[i][j] = createBLOCK( BLOCK_WIDTH * j, BLOCK_HEIGHT * i, gBlockSurface, 2, rand()%5);
+          quantBlocks++;
+        }
+        else {
+          block[i][j] = createBLOCK( BLOCK_WIDTH * j, BLOCK_HEIGHT * i, gBlockSurface, 1, RED);
+          quantBlocks++;
+        }
+      }
+      if ((i == 0 || i == 1) && (j == 0 || j == 6)){
+        block[i][j] = createBLOCK( BLOCK_WIDTH * j, BLOCK_HEIGHT * i, gBlockSurface, 2, rand()%5);
+        quantBlocks++;
+      }
     }
   }
+  printf("%d blocks\n", quantBlocks);
+
+
+
   while (!gQuit){
     while(SDL_PollEvent(&e) != 0) {
         keyPressed(&ball, &bar, e, &gameStarted);
     }
     SDL_FillRect(gScreenSurface, NULL, SDL_MapRGB(gScreenSurface->format, 0x66, 0xFF, 0xFF));
+
+    moveNPCBAR(&npcBar);
     moveBAR(&bar, &ball, gameStarted);
     moveOBJECT(&ball);
 
@@ -496,7 +671,9 @@ void stageThree(){
     }
     gameOver(&ball, &bar, &gameStarted);
     if (gLifes < 0) gQuit = true;
+
     collisionBar(bar, &ball);
+    collisionNpcBar(npcBar, &ball);
 
     srcBall.x = 0;
     srcBall.y = 0;
@@ -513,6 +690,15 @@ void stageThree(){
     dstBar.x = bar.posX;
     dstBar.y = bar.posY;
 
+    /* non-player bar's source */
+    srcNpcBar.x = 0;
+    srcNpcBar.y = 0;
+    srcNpcBar.w = BAR_WIDTH;
+    srcNpcBar.h = BAR_HEIGHT;
+    dstNpcBar.x = npcBar.posX;
+    dstNpcBar.y = npcBar.posY;
+
+
     for (j = 0; j < COLUMNS; j++) {
       for (i = 0; i < ROWS; i++) {
         if (block[i][j].resistance > 0) drawBlock(block[i][j]);
@@ -520,7 +706,8 @@ void stageThree(){
     }
 
     if(SDL_BlitSurface(ball.image, &srcBall, gScreenSurface, &dstBall) < 0 ||
-      SDL_BlitSurface(bar.image, &srcBar, gScreenSurface, &dstBar) < 0) {
+      SDL_BlitSurface(bar.image, &srcBar, gScreenSurface, &dstBar) < 0 ||
+      SDL_BlitSurface(npcBar.image, &srcNpcBar, gScreenSurface, &dstNpcBar) < 0) {
         printf("SDL could not blit! SDL Error: %s\n", SDL_GetError());
         gQuit = true;
     }
@@ -539,7 +726,7 @@ void stageThree(){
   }
 }
 
-void stageTwo(){
+void stageTwo() {
   OBJECT ball;
   OBJECT bar;
   BLOCK** block;
@@ -560,17 +747,21 @@ void stageTwo(){
   /* create bar object */
   bar = createOBJECT(SCREEN_WIDTH/2 - BAR_WIDTH/2, SCREEN_HEIGHT - 100, 0, 0, gBarSurface);
 
+  printf("%d blocks\n", quantBlocks);
   for (i = 0; i < 8; i++) {
     for (j = 0; j < COLUMNS; j++) {
-      if ((i%2==0 && j%2==1) || (i%2==1 && j%2==0))
-      block[i][j] = createBLOCK( BLOCK_WIDTH * j, BLOCK_HEIGHT * i, gBlockSurface, 1, rand()%4);
-      quantBlocks++;
+      if ((i%2==0 && j%2==1) || (i%2==1 && j%2==0)) {
+        block[i][j] = createBLOCK( BLOCK_WIDTH * j, BLOCK_HEIGHT * i, gBlockSurface, 1, rand()%4);
+        quantBlocks++;
+      }
     }
+
   }
   for (j = 0; j < COLUMNS; j++){
     i = 9;
     block[i][j] = createBLOCK( BLOCK_WIDTH * j, BLOCK_HEIGHT * i, gBlockSurface, 2, PURPLE);
     quantBlocks++;
+
   }
 
   printf("%d blocks\n", quantBlocks);
@@ -635,7 +826,7 @@ void stageTwo(){
   }
 }
 
-void stageOne(){
+void stageOne() {
   OBJECT ball;
   OBJECT bar;
   BLOCK** block;
@@ -657,7 +848,7 @@ void stageOne(){
   bar = createOBJECT(SCREEN_WIDTH/2 - BAR_WIDTH/2, SCREEN_HEIGHT - 100, 0, 0, gBarSurface);
 
   for (i = 0; i < 5; i++) {
-    for (j = 0; j < 2; j++) {
+    for (j = 0; j < COLUMNS; j++) {
       block[i][j] = createBLOCK( BLOCK_WIDTH * j, BLOCK_HEIGHT * i, gBlockSurface, 1, i);
       quantBlocks++;
     }
@@ -734,17 +925,67 @@ void stageOne(){
 }
 
 void ranking() {
-  FILE *parq;
+  SDL_Rect dstRanking;
+  SDL_Event e;
+  int returning = false;
+
+  dstRanking.x = WINDOW_WIDTH/2 - 100;
+  dstRanking.y = 100;
+
+  while(!gQuit && returning == false) {
+    while (SDL_PollEvent(&e) != 0) {
+      switch(e.type) {
+          case SDL_QUIT:
+            gQuit = true;
+            break;
+          case SDL_KEYDOWN:
+            if (e.key.keysym.sym == SDLK_ESCAPE) {
+                gQuit = true;
+            }
+            else if (e.key.keysym.sym == SDLK_LEFT) {
+              returning = true;
+            }
+      }
+      SDL_FillRect(gScreenSurface, NULL, SDL_MapRGB(gScreenSurface->format, 0x66, 0xFF, 0xFF));
+      if (SDL_BlitSurface(gRankingText, NULL, gScreenSurface, &dstRanking) < 0) {
+        printf("Error while blitting ranking surface!\n");
+      }
+      SDL_UpdateWindowSurface(gWindow);
+    }
+  }
 }
 
 void menu() {
   unsigned int cursor = 0;
-  /*int startGame = false;
-  int options = false;
-  int help = false;*/
   SDL_Event e;
+  SDL_Rect dstMenu;
+/*  SDL_Rect dstStart;*/
+  SDL_Rect dstRanking;
+/*  SDL_Rect dstOptions;
+  SDL_Rect dstHelp;*/
+
+  dstMenu.x = WINDOW_WIDTH/2 - 100;
+  dstMenu.y = 100;
+
+  /*dstStart.x = WINDOW_WIDTH/2 - 100;
+  dstStart.y = 200;*/
+
+  dstRanking.x = WINDOW_WIDTH/2 - 100;
+  dstRanking.y = 300;
+
+/*  dstOptions.x = WINDOW_WIDTH/2 - 100;
+  dstOptions.y = 400;
+
+  dstHelp.x = WINDOW_WIDTH/2 - 100;
+  dstHelp.y = 500;
+*/
   /* carregar midia do menu */
-  while (!gQuit)
+  if (!loadTextMedia()) {
+    printf("Could not load text media!\n");
+    gQuit = true;
+  }
+
+  while (!gQuit) {
     while (SDL_PollEvent(&e) != 0) {
       switch(e.type) {
         case SDL_QUIT:
@@ -769,6 +1010,9 @@ void menu() {
                 break;
             }
           }
+          else if (e.key.keysym.sym == SDLK_ESCAPE) {
+            gQuit = true;
+          }
           else if (e.key.keysym.sym == SDLK_DOWN) {
             cursor = (cursor + 1)%4; /* using %4 to make sure the cursor doesn't stop at the top/bottom */
             printf("cursor em %d\n", cursor);
@@ -779,5 +1023,12 @@ void menu() {
           }
           break;
       }
+    SDL_FillRect(gScreenSurface, NULL, SDL_MapRGB(gScreenSurface->format, 0x00, 0x00, 0x00));
+    if (SDL_BlitSurface(gMenuText, NULL, gScreenSurface, &dstMenu) < 0 ||
+        SDL_BlitSurface(gRankingText, NULL, gScreenSurface, &dstRanking) < 0) {
+      printf("Error while blitting menu surface\n");
     }
+    SDL_UpdateWindowSurface(gWindow);
+    }
+  }
 }
