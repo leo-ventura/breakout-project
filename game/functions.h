@@ -26,6 +26,7 @@ void stageOne();
 void stageTwo();
 void stageThree();
 int loadTextMedia();
+int loadInGameMenu();
 int loadRenderedText(char *, SDL_Color);
 
 #endif

@@ -423,9 +423,6 @@ SDL_Surface* loadSurface( char *path ) {
 SDL_Surface *loadRenderedText(char *text, SDL_Color textcolor) {
   SDL_Surface *optimizedTextSurface;
 
-  /* free the texture from other textures */
-  /*freeTexture(texture);*/
-
   SDL_Surface *textSurface = TTF_RenderText_Solid(gFont, text, textcolor);
   if (!textSurface) {
     printf("Unable to render text. Error: %s\n", TTF_GetError());
@@ -444,18 +441,20 @@ SDL_Surface *loadRenderedText(char *text, SDL_Color textcolor) {
 
 int loadTextMedia() {
   int success = true;
-/*  SDL_Color blacktextcolor = {0, 0, 0};*/
-  SDL_Color whitetextcolor = {255, 255, 255};
 
   gFont = TTF_OpenFont("../image_library/alagard_BitFont.ttf", 35);
   if (!gFont) {
     printf("Failed to load font! Error: %s\n", TTF_GetError());
     success = false;
   }
-  gRankingText = loadRenderedText("Ranking", whitetextcolor);
-  gMenuText = loadRenderedText("Menu", whitetextcolor);
-  if (!gRankingText || !gMenuText) {
-    printf("Failed to render text! Error: %s\n", TTF_GetError());
+  return success;
+}
+
+int loadInGameMenu() {
+  int success = true;
+  gFont = TTF_OpenFont("../image_library/alagard_BitFont.ttf", 20);
+  if (!gFont) {
+    printf("Failed to load font! Error: %s\n", TTF_GetError());
     success = false;
   }
   return success;
@@ -464,7 +463,8 @@ int loadTextMedia() {
 int loadMedia() {
     /*Loading success flag*/
     int success = true;
-    /*uint32_t colorKey;*/
+    /* Load menu surface */
+    gMenuSurface = loadSurface("../image_library/menu_screen.png");
 
     /*Load ball surface*/
     gBallSurface = loadSurface("../image_library/bola.png");
@@ -479,7 +479,7 @@ int loadMedia() {
     /* non-player bar */
     gNpcBarSurface = loadSurface("../image_library/bar.png");
 
-    if(!gBallSurface || !gBlockSurface || !gBarSurface || !gNpcBarSurface) {
+    if(!gBallSurface || !gBlockSurface || !gBarSurface || !gNpcBarSurface || !gMenuSurface) {
         printf( "Failed to load image! SDL Error: %s\n", SDL_GetError() );
         success = false;
     }
@@ -598,13 +598,14 @@ void stageThree() {
   BLOCK** block;
   SDL_Rect srcBall, dstBall;
   SDL_Rect srcBar, dstBar;
+  SDL_Rect dstInGameMenu; /* menu dimensions */
+  /*SDL_Color textcolor = {255, 255, 255}; *//* sets textcolor as white */
   int gameStarted = false; /*verify if space bar have already been pressed to start the game*/
   int i, j;
   SDL_Event e;
   int quantBlocks = 0;
   OBJECT npcBar;
   SDL_Rect srcNpcBar, dstNpcBar;
-
 
   /*create NULL blocks */
   block = (BLOCK**) calloc(ROWS, sizeof(BLOCK*));
@@ -659,6 +660,11 @@ void stageThree() {
         keyPressed(&ball, &bar, e, &gameStarted);
     }
     SDL_FillRect(gScreenSurface, NULL, SDL_MapRGB(gScreenSurface->format, 0x66, 0xFF, 0xFF));
+    dstInGameMenu.x = SCREEN_WIDTH;
+    dstInGameMenu.y = 0;
+    dstInGameMenu.h = WINDOW_HEIGHT;
+    dstInGameMenu.w = WINDOW_WIDTH - SCREEN_WIDTH;
+    SDL_FillRect(gScreenSurface, &dstInGameMenu, SDL_MapRGB(gScreenSurface->format, 0x00, 0x00, 0x00));
 
     moveNPCBAR(&npcBar);
     moveBAR(&bar, &ball, gameStarted);
@@ -732,6 +738,8 @@ void stageTwo() {
   BLOCK** block;
   SDL_Rect srcBall, dstBall;
   SDL_Rect srcBar, dstBar;
+  SDL_Rect dstInGameMenu; /* menu dimensions */
+  /*SDL_Color textcolor = {255, 255, 255}; *//* sets textcolor as white */
   int gameStarted = false; /*verify if space bar have already been pressed to start the game*/
   int i, j;
   SDL_Event e;
@@ -747,7 +755,6 @@ void stageTwo() {
   /* create bar object */
   bar = createOBJECT(SCREEN_WIDTH/2 - BAR_WIDTH/2, SCREEN_HEIGHT - 100, 0, 0, gBarSurface);
 
-  printf("%d blocks\n", quantBlocks);
   for (i = 0; i < 8; i++) {
     for (j = 0; j < COLUMNS; j++) {
       if ((i%2==0 && j%2==1) || (i%2==1 && j%2==0)) {
@@ -764,13 +771,19 @@ void stageTwo() {
 
   }
 
-  printf("%d blocks\n", quantBlocks);
+
   while (!gQuit){
     while(SDL_PollEvent(&e) != 0) {
         keyPressed(&ball, &bar, e, &gameStarted);
     }
 
     SDL_FillRect(gScreenSurface, NULL, SDL_MapRGB(gScreenSurface->format, 0x66, 0xFF, 0xFF));
+    dstInGameMenu.x = SCREEN_WIDTH;
+    dstInGameMenu.y = 0;
+    dstInGameMenu.h = WINDOW_HEIGHT;
+    dstInGameMenu.w = WINDOW_WIDTH - SCREEN_WIDTH;
+    SDL_FillRect(gScreenSurface, &dstInGameMenu, SDL_MapRGB(gScreenSurface->format, 0x00, 0x00, 0x00));
+
     moveBAR(&bar, &ball, gameStarted);
     moveOBJECT(&ball);
 
@@ -832,10 +845,19 @@ void stageOne() {
   BLOCK** block;
   SDL_Rect srcBall, dstBall;
   SDL_Rect srcBar, dstBar;
+  SDL_Rect dstInGameMenu; /* menu dimensions */
+  SDL_Color textcolor = {255, 255, 255}; /* sets textcolor as white */
+  SDL_Rect dstLifes;
+  char lifes[40];
   int gameStarted = false; /*verify if space bar has already been pressed to start the game*/
   int i, j;
   SDL_Event e;
   int quantBlocks = 0;
+
+
+  if (!loadInGameMenu()) {
+    printf("Unable to load text media!\n");
+  }
 
   /*create NULL blocks */
   block = (BLOCK**) calloc(ROWS, sizeof(BLOCK*));
@@ -853,18 +875,27 @@ void stageOne() {
       quantBlocks++;
     }
   }
-  printf("%d blocks\n", quantBlocks);
+
+  strcpy(lifes, "Lifes: ");
+  gInGameLife = loadRenderedText(lifes, textcolor);
+  /*if (!gMenuText) {
+    printf("Failed to render text! Error: %s\n", TTF_GetError());
+    gQuit = true;
+  }*/
 
   /* Starts game main loop */
-  printf("%d Lifes\n", gLifes);
   while (!gQuit){
     /* verifies if any key have been pressed */
     while(SDL_PollEvent(&e) != 0) {
       keyPressed(&ball, &bar, e, &gameStarted);
     }
-
-        /* Fill screen surface with white */
+    /* Fill screen surface with white */
     SDL_FillRect(gScreenSurface, NULL, SDL_MapRGB(gScreenSurface->format, 0x66, 0xFF, 0xFF));
+    dstInGameMenu.x = SCREEN_WIDTH;
+    dstInGameMenu.y = 0;
+    dstInGameMenu.h = WINDOW_HEIGHT;
+    dstInGameMenu.w = WINDOW_WIDTH - SCREEN_WIDTH;
+    SDL_FillRect(gScreenSurface, &dstInGameMenu, SDL_MapRGB(gScreenSurface->format, 0x00, 0x00, 0x00));
 
     moveBAR(&bar, &ball, gameStarted);
     moveOBJECT(&ball);
@@ -898,6 +929,9 @@ void stageOne() {
     dstBar.x = bar.posX;
     dstBar.y = bar.posY;
 
+    dstLifes.x = SCREEN_WIDTH + 30;
+    dstLifes.y = 30;
+
     for (j = 0; j < COLUMNS; j++) {
       for (i = 0; i < ROWS; i++) {
         if (block[i][j].resistance > 0) drawBlock(block[i][j]);
@@ -905,7 +939,8 @@ void stageOne() {
     }
 
     if(SDL_BlitSurface(ball.image, &srcBall, gScreenSurface, &dstBall) < 0 ||
-      SDL_BlitSurface(bar.image, &srcBar, gScreenSurface, &dstBar) < 0) {
+      SDL_BlitSurface(bar.image, &srcBar, gScreenSurface, &dstBar) < 0 ||
+      SDL_BlitSurface(gInGameLife, NULL, gScreenSurface, &dstLifes) < 0) {
         printf("SDL could not blit! SDL Error: %s\n", SDL_GetError());
         gQuit = true;
     }
@@ -928,6 +963,13 @@ void ranking() {
   SDL_Rect dstRanking;
   SDL_Event e;
   int returning = false;
+  SDL_Color textcolor = {0, 0, 0};
+
+  gRankingText = loadRenderedText("Ranking", textcolor);
+  if (!gRankingText) {
+    printf("Failed to render text! Error: %s\n", TTF_GetError());
+    gQuit = true;
+  }
 
   dstRanking.x = WINDOW_WIDTH/2 - 100;
   dstRanking.y = 100;
@@ -959,26 +1001,10 @@ void menu() {
   unsigned int cursor = 0;
   SDL_Event e;
   SDL_Rect dstMenu;
-/*  SDL_Rect dstStart;*/
-  SDL_Rect dstRanking;
-/*  SDL_Rect dstOptions;
-  SDL_Rect dstHelp;*/
 
-  dstMenu.x = WINDOW_WIDTH/2 - 100;
-  dstMenu.y = 100;
+  dstMenu.x = 0;
+  dstMenu.y = 0;
 
-  /*dstStart.x = WINDOW_WIDTH/2 - 100;
-  dstStart.y = 200;*/
-
-  dstRanking.x = WINDOW_WIDTH/2 - 100;
-  dstRanking.y = 300;
-
-/*  dstOptions.x = WINDOW_WIDTH/2 - 100;
-  dstOptions.y = 400;
-
-  dstHelp.x = WINDOW_WIDTH/2 - 100;
-  dstHelp.y = 500;
-*/
   /* carregar midia do menu */
   if (!loadTextMedia()) {
     printf("Could not load text media!\n");
@@ -1015,17 +1041,14 @@ void menu() {
           }
           else if (e.key.keysym.sym == SDLK_DOWN) {
             cursor = (cursor + 1)%4; /* using %4 to make sure the cursor doesn't stop at the top/bottom */
-            printf("cursor em %d\n", cursor);
           }
           else if (e.key.keysym.sym == SDLK_UP) {
             cursor = (cursor + 3)%4;
-            printf("cursor em %d\n", cursor);
           }
           break;
       }
     SDL_FillRect(gScreenSurface, NULL, SDL_MapRGB(gScreenSurface->format, 0x00, 0x00, 0x00));
-    if (SDL_BlitSurface(gMenuText, NULL, gScreenSurface, &dstMenu) < 0 ||
-        SDL_BlitSurface(gRankingText, NULL, gScreenSurface, &dstRanking) < 0) {
+    if (SDL_BlitSurface(gMenuSurface, NULL, gScreenSurface, &dstMenu) < 0) {
       printf("Error while blitting menu surface\n");
     }
     SDL_UpdateWindowSurface(gWindow);
