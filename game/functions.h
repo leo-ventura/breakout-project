@@ -25,5 +25,7 @@ void help();
 void stageOne();
 void stageTwo();
 void stageThree();
+int loadTextMedia();
+int loadRenderedText(char *, SDL_Color);
 
 #endif
