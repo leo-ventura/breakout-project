@@ -694,9 +694,10 @@ void stageThree() {
   int quantBlocks = 0;
   OBJECT npcBar;
   SDL_Rect srcNpcBar, dstNpcBar;
+  FILE *pRankFile;
   PLAYER jogador;
-  int topScore[10];
-  char decay[36];
+  PLAYER recordistas[5];
+  PLAYER aux, aux2;
 
   /*create NULL blocks */
   block = (BLOCK**) calloc(ROWS, sizeof(BLOCK*));
@@ -775,29 +776,61 @@ void stageThree() {
 
       pRankFile = fopen("rankings.bin", "r+");
       if(!pRankFile){
-        pRankFile = fopen("rankings.bin", "w+");
+        pRankFile = fopen("rankings.bin", "wb");
 
         printf("Congratulations, you set a new record!\n");
         printf("Please, proceed to inform your name. (20 characters maximum)\n");
-        fgets(jogador.name, 20, sizeof(char));
-        jogador.name[strlen(jogador.nome) - 1] = '\0';
+        fgets(jogador.name, 20, stdin);
+        jogador.name[strlen(jogador.name) - 1] = '\0';
 
-        fputs("1- ");
         fwrite(jogador.name, sizeof(char), 20, pRankFile);
-        fprintf(pRankFile, " : %d\n", jogador.points);
+        fprintf(pRankFile, " %d\n", jogador.points);
 
       } else {
+
+        fread(recordistas, sizeof(PLAYER), 5, pRankFile);
+        /* Searches for values in the top 5 ranks that are lower than the
+           the new player score. */
+
         for(i = 0; i < 5; i++){
-          fread(topScore, sizeof(int), 10, pRankFile);
+          if(recordistas[i].points <= jogador.points){
 
-          if(jogador.points > topScore){
+            printf("Congratulations, you set a new record!\n");
+            printf("Please, proceed to inform your name. (20 characters maximum)\n");
+            fgets(jogador.name, 20, stdin);
+            jogador.name[strlen(jogador.name) - 1] = '\0';
 
+            /* Includes the player score int the rankings */
+            aux = recordistas[i];
+            recordistas[i] = jogador;
+
+            /* Updates de ranking table with the new top 5 scores */
+            for(j = i+1; j < 5; j++){
+              aux2 = recordistas[j];
+              recordistas[j] = aux;
+              aux = aux2;
+            }
+
+            break;
           }
-
         }
+        fclose(pRankFile);
+
+        pRankFile = fopen("rankings.bin", "wb");
+        if(!pRankFile){
+          perror("Ranking file could not be replaced! Error: ");
+          /*return;*/
+        }
+
+        else{
+          fwrite(recordistas, sizeof(PLAYER), 5, pRankFile);
+          fputs("\n", pRankFile);
+
+          fclose(pRankFile);
+        }
+
       }
       gQuit = true;
-
     }
     /* FIM DA EDICAO DO TOSTES */
 
@@ -877,6 +910,10 @@ void stageTwo() {
   int i, j;
   SDL_Event e;
   int quantBlocks = 0;
+  FILE *pRankFile;
+  PLAYER jogador;
+  PLAYER recordistas[5];
+  PLAYER aux, aux2;
 
   if (!loadInGameMenu()) {
     printf("Unable to load text media!\n");
@@ -947,7 +984,67 @@ void stageTwo() {
 
     collisionBar(bar, &ball);
     gameOver(&ball, &bar, &gameStarted);
-    if (gLifes < 0) gQuit = true;
+    if (gLifes < 0) {
+      jogador.points = gPoints;
+
+      pRankFile = fopen("rankings.bin", "r+");
+      if(!pRankFile){
+        pRankFile = fopen("rankings.bin", "wb");
+
+        printf("Congratulations, you set a new record!\n");
+        printf("Please, proceed to inform your name. (20 characters maximum)\n");
+        fgets(jogador.name, 20, stdin);
+        jogador.name[strlen(jogador.name) - 1] = '\0';
+
+        fwrite(jogador.name, sizeof(char), 20, pRankFile);
+        fprintf(pRankFile, " %d\n", jogador.points);
+
+      } else {
+
+        fread(recordistas, sizeof(PLAYER), 5, pRankFile);
+        /* Searches for values in the top 5 ranks that are lower than the
+           the new player score. */
+
+        for(i = 0; i < 5; i++){
+          if(recordistas[i].points <= jogador.points){
+
+            printf("Congratulations, you set a new record!\n");
+            printf("Please, proceed to inform your name. (20 characters maximum)\n");
+            fgets(jogador.name, 20, stdin);
+            jogador.name[strlen(jogador.name) - 1] = '\0';
+
+            /* Includes the player score int the rankings */
+            aux = recordistas[i];
+            recordistas[i] = jogador;
+
+            /* Updates de ranking table with the new top 5 scores */
+            for(j = i+1; j < 5; j++){
+              aux2 = recordistas[j];
+              recordistas[j] = aux;
+              aux = aux2;
+            }
+
+            break;
+          }
+        }
+        fclose(pRankFile);
+
+        pRankFile = fopen("rankings.bin", "wb");
+        if(!pRankFile){
+          perror("Ranking file could not be replaced! Error: ");
+          /*return;*/
+        }
+
+        else{
+          fwrite(recordistas, sizeof(PLAYER), 5, pRankFile);
+          fputs("\n", pRankFile);
+
+          fclose(pRankFile);
+        }
+
+      }
+      gQuit = true;
+    }
 
 
     srcBall.x = 0;
@@ -1024,6 +1121,10 @@ void stageOne() {
   int i, j;
   SDL_Event e;
   int quantBlocks = 0;
+  FILE *pRankFile;
+  PLAYER jogador;
+  PLAYER recordistas[5];
+  PLAYER aux, aux2;
 
 
   if (!loadInGameMenu()) {
@@ -1090,7 +1191,67 @@ void stageOne() {
     collisionBar(bar, &ball);
 
     gameOver(&ball, &bar, &gameStarted);
-    if (gLifes < 0) gQuit = true;
+    if (gLifes < 0) {
+      jogador.points = gPoints;
+
+      pRankFile = fopen("rankings.bin", "r+");
+      if(!pRankFile){
+        pRankFile = fopen("rankings.bin", "wb");
+
+        printf("Congratulations, you set a new record!\n");
+        printf("Please, proceed to inform your name. (20 characters maximum)\n");
+        fgets(jogador.name, 20, stdin);
+        jogador.name[strlen(jogador.name) - 1] = '\0';
+
+        fwrite(jogador.name, sizeof(char), 20, pRankFile);
+        fprintf(pRankFile, " %d\n", jogador.points);
+
+      } else {
+
+        fread(recordistas, sizeof(PLAYER), 5, pRankFile);
+        /* Searches for values in the top 5 ranks that are lower than the
+           the new player score. */
+
+        for(i = 0; i < 5; i++){
+          if(recordistas[i].points <= jogador.points){
+
+            printf("Congratulations, you set a new record!\n");
+            printf("Please, proceed to inform your name. (20 characters maximum)\n");
+            fgets(jogador.name, 20, stdin);
+            jogador.name[strlen(jogador.name) - 1] = '\0';
+
+            /* Includes the player score int the rankings */
+            aux = recordistas[i];
+            recordistas[i] = jogador;
+
+            /* Updates de ranking table with the new top 5 scores */
+            for(j = i+1; j < 5; j++){
+              aux2 = recordistas[j];
+              recordistas[j] = aux;
+              aux = aux2;
+            }
+
+            break;
+          }
+        }
+        fclose(pRankFile);
+
+        pRankFile = fopen("rankings.bin", "wb");
+        if(!pRankFile){
+          perror("Ranking file could not be replaced! Error: ");
+          /*return;*/
+        }
+
+        else{
+          fwrite(recordistas, sizeof(PLAYER), 5, pRankFile);
+          fputs("\n", pRankFile);
+
+          fclose(pRankFile);
+        }
+
+      }
+      gQuit = true;
+    }
 
     /* ball's source */
     srcBall.x = 0;

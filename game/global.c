@@ -7,8 +7,7 @@
 int gQuit = false;
 int gPoints = 0;
 int gLifes = 3;
-/* Binary file for the Ranking systems */
-FILE *pRankFile;
+
 /* The window we'll be rendering to */
 SDL_Window *gWindow = NULL;
 /* The surface contained by the window */
