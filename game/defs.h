@@ -41,4 +41,9 @@ typedef struct _BLOCK {
   SDL_Surface *image;
 } BLOCK;
 
+typedef struct _PLAYER{
+  int points;
+  char name[20];
+} PLAYER;
+
 #endif

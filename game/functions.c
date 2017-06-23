@@ -694,6 +694,9 @@ void stageThree() {
   int quantBlocks = 0;
   OBJECT npcBar;
   SDL_Rect srcNpcBar, dstNpcBar;
+  PLAYER jogador;
+  int topScore[10];
+  char decay[36];
 
   /*create NULL blocks */
   block = (BLOCK**) calloc(ROWS, sizeof(BLOCK*));
@@ -764,7 +767,40 @@ void stageThree() {
       }
     }
     gameOver(&ball, &bar, &gameStarted);
-    if (gLifes < 0) gQuit = true;
+
+
+    /* INICIO DA EDICAO DO TOSTES */
+    if (gLifes < 0) {
+      jogador.points = gPoints;
+
+      pRankFile = fopen("rankings.bin", "r+");
+      if(!pRankFile){
+        pRankFile = fopen("rankings.bin", "w+");
+
+        printf("Congratulations, you set a new record!\n");
+        printf("Please, proceed to inform your name. (20 characters maximum)\n");
+        fgets(jogador.name, 20, sizeof(char));
+        jogador.name[strlen(jogador.nome) - 1] = '\0';
+
+        fputs("1- ");
+        fwrite(jogador.name, sizeof(char), 20, pRankFile);
+        fprintf(pRankFile, " : %d\n", jogador.points);
+
+      } else {
+        for(i = 0; i < 5; i++){
+          fread(topScore, sizeof(int), 10, pRankFile);
+
+          if(jogador.points > topScore){
+
+          }
+
+        }
+      }
+      gQuit = true;
+
+    }
+    /* FIM DA EDICAO DO TOSTES */
+
 
     collisionBar(bar, &ball);
     collisionNpcBar(npcBar, &ball);
