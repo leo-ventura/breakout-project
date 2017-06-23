@@ -20,7 +20,7 @@ void collisionBar(OBJECT, OBJECT*);
 void keyPressed(OBJECT*, OBJECT*, SDL_Event, int*);
 void menu();
 void ranking();
-void options();
+void settings();
 void help();
 void stageOne();
 void stageTwo();
