@@ -28,6 +28,7 @@ Mix_Chunk *gDestroyBlockSound = NULL;
 /* fonts */
 TTF_Font *gFont = NULL;
 SDL_Surface *gRankingText = NULL;
+SDL_Surface *gSettingsText = NULL;
 SDL_Surface *gMenuText = NULL;
 SDL_Surface *gInGamePoints = NULL;
 SDL_Surface *gInGameLife = NULL;

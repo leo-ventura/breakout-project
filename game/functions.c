@@ -441,7 +441,7 @@ SDL_Surface *loadRenderedText(char *text, SDL_Color textcolor) {
 int loadTextMedia() {
   int success = true;
 
-  gFont = TTF_OpenFont("../image_library/alagard_BitFont.ttf", 35);
+  gFont = TTF_OpenFont("../image_library/alagard_BitFont.ttf", 45);
   if (!gFont) {
     printf("Failed to load font! Error: %s\n", TTF_GetError());
     success = false;
@@ -615,8 +615,65 @@ void keyPressed(OBJECT *ball, OBJECT *bar, SDL_Event e, int *gameStarted){
   }
 }
 
-void options() {
-  printf("Entrei em Options\n");
+void settings() {
+  SDL_Rect dstSettings;
+  SDL_Event e;
+  int returning = false;
+  int cursor = 0;
+  SDL_Color textcolor = {255, 255, 255};
+  SDL_Surface *volumeSurface;
+  SDL_Rect dstVolume;
+
+  gSettingsText = loadRenderedText("Settings", textcolor);
+  volumeSurface = loadRenderedText("Volume: ", textcolor);
+
+  if (!gSettingsText || !volumeSurface) {
+    printf("Failed to render text! Error: %s\n", TTF_GetError());
+    gQuit = true;
+  }
+
+  dstSettings.x = WINDOW_WIDTH/2 - 100;
+  dstSettings.y = 100;
+
+  dstVolume.x = WINDOW_WIDTH/2 - 100;
+  dstVolume.y = 200;
+
+  while(!gQuit && returning == false) {
+    while (SDL_PollEvent(&e) != 0) {
+      switch(e.type) {
+          case SDL_QUIT:
+            gQuit = true;
+            break;
+          case SDL_KEYDOWN:
+            if (e.key.keysym.sym == SDLK_ESCAPE) {
+                gQuit = true;
+            }
+            else if (e.key.keysym.sym == SDLK_LEFT) {
+              returning = true;
+            }
+            else if (e.key.keysym.sym == SDLK_RETURN) {
+              switch(cursor) {
+                case 0:
+                  /* turn on/off audio*/
+                  break;
+                case 1:
+                  /* change volume */
+                  break;
+                case 2:
+                  returning = true;
+                  break;
+              }
+            }
+      }
+      SDL_FillRect(gScreenSurface, NULL, SDL_MapRGB(gScreenSurface->format, 0x00, 0x00, 0x00));
+      if (SDL_BlitSurface(gSettingsText, NULL, gScreenSurface, &dstSettings) < 0 ||
+          SDL_BlitSurface(volumeSurface, NULL, gScreenSurface, &dstVolume) < 0) {
+        printf("Error while blitting ranking surface!\n");
+      }
+      SDL_UpdateWindowSurface(gWindow);
+    }
+  }
+  SDL_FreeSurface(volumeSurface);
 }
 
 void help() {
@@ -1099,7 +1156,6 @@ void menu() {
   dstMenu.x = 0;
   dstMenu.y = 0;
 
-  /* carregar midia do menu */
   if (!loadTextMedia()) {
     printf("Could not load text media!\n");
     gQuit = true;
@@ -1121,12 +1177,10 @@ void menu() {
                 ranking();
                 break;
               case 2:
-                /*options = true;*/
-                options();
+                settings();
                 break;
               case 3:
                 help();
-                /*help = true;*/
                 break;
               case 4:
                 gQuit = true;
