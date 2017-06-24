@@ -15,6 +15,7 @@
 #define SCREEN_HEIGHT 600
 #define WINDOW_WIDTH 940
 #define WINDOW_HEIGHT 600
+#define SELECT_WIDTH 32
 #define RED 0
 #define BLUE 1
 #define GREEN 2

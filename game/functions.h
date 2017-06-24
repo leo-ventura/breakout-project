@@ -17,7 +17,11 @@ void collisionNpcBar(OBJECT, OBJECT*);
 double distance(double, double, double, double);
 void gameOver(OBJECT*, OBJECT*, int*); /* check wheter player loses one life */
 void collisionBar(OBJECT, OBJECT*);
-void keyPressed(OBJECT*, OBJECT*, SDL_Event, int*);
+void keyPressed(OBJECT*, OBJECT*, SDL_Event, int*, int);
+void pause(OBJECT*, OBJECT*, OBJECT*, SDL_Event, int*);
+void quitPressed(SDL_Event);
+void turnSound(SDL_Event);
+void turnMusic(SDL_Event);
 void menu();
 void ranking();
 void settings();

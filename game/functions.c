@@ -83,10 +83,10 @@ void collisionBlock(BLOCK *block, OBJECT *ball, int *quantBlocks) {
           if (block->resistance == 0){
             (*quantBlocks)--;
             gPoints += 100;
-            Mix_PlayChannel(-1, gDestroyBlockSound, 0);
+            if (gSoundCondition) Mix_PlayChannel(-1, gDestroyBlockSound, 0);
           }
           else {
-            Mix_PlayChannel(-1, gCollisionBlockSound, 0);
+            if (gSoundCondition) if (gSoundCondition) Mix_PlayChannel(-1, gCollisionBlockSound, 0);
           }
     }
     /* right and left */
@@ -100,10 +100,10 @@ void collisionBlock(BLOCK *block, OBJECT *ball, int *quantBlocks) {
             if (block->resistance == 0){
               (*quantBlocks)--;
               gPoints += 100;
-              Mix_PlayChannel(-1, gDestroyBlockSound, 0);
+              if (gSoundCondition) if (gSoundCondition) Mix_PlayChannel(-1, gDestroyBlockSound, 0);
             }
             else {
-              Mix_PlayChannel(-1, gCollisionBlockSound, 0);
+              if (gSoundCondition) Mix_PlayChannel(-1, gCollisionBlockSound, 0);
             }
     }
     /* upper left */
@@ -120,10 +120,10 @@ void collisionBlock(BLOCK *block, OBJECT *ball, int *quantBlocks) {
       if (block->resistance == 0){
         (*quantBlocks)--;
         gPoints += 100;
-        Mix_PlayChannel(-1, gDestroyBlockSound, 0);
+        if (gSoundCondition) Mix_PlayChannel(-1, gDestroyBlockSound, 0);
       }
       else {
-        Mix_PlayChannel(-1, gCollisionBlockSound, 0);
+        if (gSoundCondition) Mix_PlayChannel(-1, gCollisionBlockSound, 0);
       }
     }
 
@@ -141,10 +141,10 @@ void collisionBlock(BLOCK *block, OBJECT *ball, int *quantBlocks) {
       if (block->resistance == 0){
         (*quantBlocks)--;
         gPoints += 100;
-        Mix_PlayChannel(-1, gDestroyBlockSound, 0);
+        if (gSoundCondition) Mix_PlayChannel(-1, gDestroyBlockSound, 0);
       }
       else {
-        Mix_PlayChannel(-1, gCollisionBlockSound, 0);
+        if (gSoundCondition) Mix_PlayChannel(-1, gCollisionBlockSound, 0);
       }
     }
 
@@ -162,10 +162,10 @@ void collisionBlock(BLOCK *block, OBJECT *ball, int *quantBlocks) {
       if (block->resistance == 0){
         (*quantBlocks)--;
         gPoints += 100;
-        Mix_PlayChannel(-1, gDestroyBlockSound, 0);
+        if (gSoundCondition) Mix_PlayChannel(-1, gDestroyBlockSound, 0);
       }
       else {
-        Mix_PlayChannel(-1, gCollisionBlockSound, 0);
+        if (gSoundCondition) Mix_PlayChannel(-1, gCollisionBlockSound, 0);
       }
     }
 
@@ -183,10 +183,10 @@ void collisionBlock(BLOCK *block, OBJECT *ball, int *quantBlocks) {
       if (block->resistance == 0){
         (*quantBlocks)--;
         gPoints += 100;
-        Mix_PlayChannel(-1, gDestroyBlockSound, 0);
+        if (gSoundCondition) Mix_PlayChannel(-1, gDestroyBlockSound, 0);
       }
       else {
-        Mix_PlayChannel(-1, gCollisionBlockSound, 0);
+        if (gSoundCondition) Mix_PlayChannel(-1, gCollisionBlockSound, 0);
       }
     }
   }
@@ -270,7 +270,7 @@ void collisionBar(OBJECT bar, OBJECT *ball){
           ball->stepX = ((ball->posX + BALL_WIDTH/2) - (bar.posX + BAR_WIDTH/2))/40;
           ball->posY += ball->stepY;
           ball->posX += ball->stepX;
-          Mix_PlayChannel(-1, gCollisionBarSound, 0);
+          if (gSoundCondition) Mix_PlayChannel(-1, gCollisionBarSound, 0);
     }
     else if (((ball->posX <= bar.posX + BAR_WIDTH && ball->posX > bar.posX) ||
          (ball->posX + BALL_WIDTH >= bar.posX && ball->posX + BALL_WIDTH < bar.posX + BAR_WIDTH )) &&
@@ -279,7 +279,7 @@ void collisionBar(OBJECT bar, OBJECT *ball){
            ball->stepX = ((ball->posX + BALL_WIDTH/2) - (bar.posX + BAR_WIDTH/2))/40;
            ball->posY += ball->stepY;
            ball->posX += ball->stepX;
-           Mix_PlayChannel(-1, gCollisionBarSound, 0);
+           if (gSoundCondition) Mix_PlayChannel(-1, gCollisionBarSound, 0);
     }
   }
 }
@@ -478,23 +478,24 @@ int loadMedia() {
     /* non-player bar */
     gNpcBarSurface = loadSurface("../image_library/bar.png");
 
-    if(!gBallSurface || !gBlockSurface || !gBarSurface || !gNpcBarSurface || !gMenuSurface) {
+    gSelectedOption = loadSurface("../image_library/select.png");
+
+    if(!gBallSurface || !gBlockSurface || !gBarSurface || !gNpcBarSurface || !gMenuSurface || !gSelectedOption) {
         printf( "Failed to load image! SDL Error: %s\n", SDL_GetError() );
         success = false;
     }
-
-    gStartSelected = loadSurface("../image_library/start_selected.png");
-    gRankingSelected = loadSurface("../image_library/Ranking_selected.png");
-    gSettingsSelected = loadSurface("../image_library/settings_selected.png");
-    gHelpSelected = loadSurface("../image_library/Help_selected.png");
-    gExitSelected = loadSurface("../image_library/Exit_selected.png");
 
     /*load sounds */
     gCollisionBarSound = Mix_LoadWAV("../sound_library/collisionBar.wav");
     gCollisionBlockSound = Mix_LoadWAV("../sound_library/collisionBlock.wav");
     gDestroyBlockSound = Mix_LoadWAV("../sound_library/destroyBlock.wav");
+    gStageOneMusic = Mix_LoadMUS("../sound_library/music.mod");
+    /*
+    gStageTwoMusic = Mix_LoadMUS("../sound_library/stageTwoMusic.mp3");
+    gStageThreeMusic = Mix_LoadMUS("../sound_library/stageThreeMusic.mp3");
+    */
 
-    if (!gCollisionBlockSound || !gCollisionBarSound || !gDestroyBlockSound) {
+    if (!gCollisionBlockSound || !gCollisionBarSound || !gDestroyBlockSound || !gStageOneMusic /*|| !gStageTwoMusic|| !gStageTwoMusic*/) {
       printf("Failed to load sounds! SDL Error: %s\n", SDL_GetError());
       success = false;
     }
@@ -521,16 +522,8 @@ void closing() {
     TTF_CloseFont(gFont);
     gFont = NULL;
 
-    SDL_FreeSurface(gStartSelected);
-    gStartSelected = NULL;
-    SDL_FreeSurface(gRankingSelected);
-    gRankingSelected = NULL;
-    SDL_FreeSurface(gSettingsSelected);
-    gSettingsSelected = NULL;
-    SDL_FreeSurface(gHelpSelected);
-    gHelpSelected = NULL;
-    SDL_FreeSurface(gExitSelected);
-    gExitSelected = NULL;
+    SDL_FreeSurface(gSelectedOption);
+    gSelectedOption = NULL;
 
     /* Free fonts' surface */
     SDL_FreeSurface(gRankingText);
@@ -561,6 +554,7 @@ void closing() {
     Mix_FreeChunk(gCollisionBarSound);
     Mix_FreeChunk(gCollisionBlockSound);
     Mix_FreeChunk(gDestroyBlockSound);
+    Mix_FreeMusic(gStageOneMusic);
 
     /*Quit SDL subsystems*/
     TTF_Quit();
@@ -568,7 +562,32 @@ void closing() {
     SDL_Quit();
 }
 
-void keyPressed(OBJECT *ball, OBJECT *bar, SDL_Event e, int *gameStarted){
+void turnSound(SDL_Event e){
+  switch (e.type) {
+    case SDL_KEYDOWN:
+      if (e.key.keysym.sym == SDLK_s) {
+        gSoundCondition = !gSoundCondition;
+      }
+  }
+}
+
+void turnMusic(SDL_Event e){
+  switch (e.type) {
+    case SDL_KEYDOWN:
+      if (e.key.keysym.sym == SDLK_m) {
+        gMusicCondition = !gMusicCondition;
+        if (Mix_PausedMusic()) {
+          Mix_ResumeMusic();
+        }
+        else {
+          Mix_PauseMusic();
+        }
+      }
+  }
+}
+
+
+void quitPressed(SDL_Event e){
   switch(e.type) {
       case SDL_QUIT:
         gQuit = true;
@@ -577,26 +596,61 @@ void keyPressed(OBJECT *ball, OBJECT *bar, SDL_Event e, int *gameStarted){
         if (e.key.keysym.sym == SDLK_ESCAPE) {
             gQuit = true;
         }
-        else if(!*gameStarted) {
-          if (e.key.keysym.sym == SDLK_LEFT) {
-            ball->stepX = -1;
+        break;
+  }
+}
+
+void pause(OBJECT* ball, OBJECT* bar, OBJECT* bar2, SDL_Event e, int* pausedGame){
+  static OBJECT oldBall;
+  static OBJECT oldBar;
+  static OBJECT oldBar2;
+  switch (e.type) {
+    case SDL_KEYDOWN:
+      if (e.key.keysym.sym == SDLK_p){
+        if (!*pausedGame) {
+          oldBall = *ball;
+          oldBar = *bar;
+          oldBar2 = *bar2;
+          ball->stepX = 0;
+          ball->stepY = 0;
+          bar->stepX = 0;
+          bar2->stepX = 0;
+        }
+        else {
+          *bar = oldBar;
+          *ball = oldBall;
+          *bar2 = oldBar2;
+        }
+        *pausedGame = !*pausedGame;
+      }
+  }
+}
+
+void keyPressed(OBJECT *ball, OBJECT *bar, SDL_Event e, int *gameStarted, int pausedGame) {
+  switch(e.type) {
+      case SDL_KEYDOWN:
+        if (!pausedGame){
+          if(!*gameStarted) {
+            if (e.key.keysym.sym == SDLK_LEFT) {
+              ball->stepX = -1;
+              bar->stepX = -1;
+            }
+            else if (e.key.keysym.sym == SDLK_RIGHT) {
+              ball->stepX = 1;
+              bar->stepX = 1;
+            }
+            else if (e.key.keysym.sym == SDLK_SPACE) {
+              ball->stepX = 1;
+              ball->stepY = -1;
+              *gameStarted = true;
+            }
+          }
+          else if (e.key.keysym.sym == SDLK_LEFT) {
             bar->stepX = -1;
           }
           else if (e.key.keysym.sym == SDLK_RIGHT) {
-            ball->stepX = 1;
             bar->stepX = 1;
           }
-          else if (e.key.keysym.sym == SDLK_SPACE) {
-            ball->stepX = 1;
-            ball->stepY = -1;
-            *gameStarted = true;
-          }
-        }
-        else if (e.key.keysym.sym == SDLK_LEFT) {
-          bar->stepX = -1;
-        }
-        else if (e.key.keysym.sym == SDLK_RIGHT) {
-          bar->stepX = 1;
         }
         break;
       case SDL_KEYUP:
@@ -622,21 +676,45 @@ void settings() {
   int cursor = 0;
   SDL_Color textcolor = {255, 255, 255};
   SDL_Surface *volumeSurface;
+  SDL_Surface *musicSurface;
+  SDL_Surface *soundSurface;
+  SDL_Surface *ballColorSurface;
+  SDL_Surface *barColorSurface;
+  SDL_Surface *backSurface;
   SDL_Rect dstVolume;
+  SDL_Rect dstMusic;
+  SDL_Rect dstSound;
+  SDL_Rect dstBallColor;
+  SDL_Rect dstBarColor;
+  SDL_Rect dstBack;
+  SDL_Rect dstSelectedOption;
+  char volume[20] = "Volume: ";
+  char music[20];
+  char sound[20];
+  char strBallColor[40];
+  char strBarColor[40];
 
-  gSettingsText = loadRenderedText("Settings", textcolor);
-  volumeSurface = loadRenderedText("Volume: ", textcolor);
-
-  if (!gSettingsText || !volumeSurface) {
-    printf("Failed to render text! Error: %s\n", TTF_GetError());
-    gQuit = true;
-  }
 
   dstSettings.x = WINDOW_WIDTH/2 - 100;
-  dstSettings.y = 100;
+  dstSettings.y = 50;
 
-  dstVolume.x = WINDOW_WIDTH/2 - 100;
-  dstVolume.y = 200;
+  dstVolume.x = WINDOW_WIDTH/2 - 250;
+  dstVolume.y = 150;
+
+  dstMusic.x = WINDOW_WIDTH/2 - 250;
+  dstMusic.y = 200;
+
+  dstSound.x = WINDOW_WIDTH/2 - 250;
+  dstSound.y = 250;
+
+  dstBallColor.x = WINDOW_WIDTH/2 - 250;
+  dstBallColor.y = 300;
+
+  dstBarColor.x = WINDOW_WIDTH/2 - 250;
+  dstBarColor.y = 350;
+
+  dstBack.x = WINDOW_WIDTH/2 - 250;
+  dstBack.y = 400;
 
   while(!gQuit && returning == false) {
     while (SDL_PollEvent(&e) != 0) {
@@ -648,26 +726,122 @@ void settings() {
             if (e.key.keysym.sym == SDLK_ESCAPE) {
                 gQuit = true;
             }
-            else if (e.key.keysym.sym == SDLK_LEFT) {
-              returning = true;
+            if (e.key.keysym.sym == SDLK_UP) {
+                cursor = (cursor+5)%6;
+                printf("%d\n", cursor);
+            }
+            if (e.key.keysym.sym == SDLK_DOWN) {
+                cursor = (cursor+1)%6;
+                printf("%d\n", cursor);
             }
             else if (e.key.keysym.sym == SDLK_RETURN) {
               switch(cursor) {
-                case 0:
-                  /* turn on/off audio*/
-                  break;
                 case 1:
-                  /* change volume */
+                  gMusicCondition = !gMusicCondition;
                   break;
                 case 2:
+                  gSoundCondition = !gSoundCondition;
+                  break;
+                case 5:
                   returning = true;
                   break;
               }
             }
+            else if (e.key.keysym.sym == SDLK_RIGHT) {
+              switch(cursor) {
+                case 0:
+                  /*volume*/
+                  break;
+                case 1:
+                  gMusicCondition = !gMusicCondition;
+                  break;
+                case 2:
+                  gSoundCondition = !gSoundCondition;
+                  break;
+                case 3:
+                  gBallColor = (gBallColor+3)%4;
+                  break;
+                case 4:
+                  gBarColor = (gBarColor+3)%4;
+                  break;
+              }
+            }
+            else if (e.key.keysym.sym == SDLK_LEFT) {
+              switch(cursor) {
+                case 0:
+                  /*volume*/
+                  break;
+                case 1:
+                  gMusicCondition = !gMusicCondition;
+                  break;
+                case 2:
+                  gSoundCondition = !gSoundCondition;
+                  break;
+                case 3:
+                  gBallColor = (gBallColor+3)%4;
+                  break;
+                case 4:
+                  gBarColor = (gBarColor+3)%4;
+                  break;
+              }
+            }
+
+
       }
+
+      switch (cursor) {
+        case 0:
+          dstSelectedOption.y = 150;
+          break;
+        case 1:
+          dstSelectedOption.y = 200;
+          break;
+        case 2:
+          dstSelectedOption.y = 250;
+          break;
+        case 3:
+          dstSelectedOption.y = 300;
+          break;
+        case 4:
+          dstSelectedOption.y = 350;
+          break;
+        case 5:
+          dstSelectedOption.y = 400;
+          break;
+      }
+      dstSelectedOption.x = WINDOW_WIDTH/2 - 270 - SELECT_WIDTH;
+
+      strcpy(music, "Music: ");
+      strcat(music, gMusicCondition? "On" : "Off");
+      strcpy(sound, "Sound: ");
+      strcat(sound, gSoundCondition? "On" : "Off");
+      strcpy(strBallColor, "Ball Color: ");
+      strcat(strBallColor, gBallColor==0? "Red" : gBallColor==1? "Blue" : gBallColor==2? "Green" : "Yellow");
+      strcpy(strBarColor, "Bar Color: ");
+      strcat(strBarColor, gBarColor==0? "Red" : gBarColor==1? "Blue" : gBarColor==2? "Green" : "Yellow");
+
+      gSettingsText = loadRenderedText("Settings", textcolor);
+      volumeSurface = loadRenderedText(volume, textcolor);
+      musicSurface = loadRenderedText(music, textcolor);
+      soundSurface = loadRenderedText(sound, textcolor);
+      ballColorSurface = loadRenderedText(strBallColor, textcolor);
+      barColorSurface = loadRenderedText(strBarColor, textcolor);
+      backSurface = loadRenderedText("Back", textcolor);
+
+      if (!gSettingsText || !volumeSurface || !musicSurface || !soundSurface || !ballColorSurface || !barColorSurface || !backSurface) {
+        printf("Failed to render text! Error: %s\n", TTF_GetError());
+        gQuit = true;
+      }
+
       SDL_FillRect(gScreenSurface, NULL, SDL_MapRGB(gScreenSurface->format, 0x00, 0x00, 0x00));
       if (SDL_BlitSurface(gSettingsText, NULL, gScreenSurface, &dstSettings) < 0 ||
-          SDL_BlitSurface(volumeSurface, NULL, gScreenSurface, &dstVolume) < 0) {
+          SDL_BlitSurface(volumeSurface, NULL, gScreenSurface, &dstVolume) < 0 ||
+          SDL_BlitSurface(musicSurface, NULL, gScreenSurface, &dstMusic) < 0 ||
+          SDL_BlitSurface(soundSurface, NULL, gScreenSurface, &dstSound) < 0 ||
+          SDL_BlitSurface(ballColorSurface, NULL, gScreenSurface, &dstBallColor) < 0 ||
+          SDL_BlitSurface(barColorSurface, NULL, gScreenSurface, &dstBarColor) < 0 ||
+          SDL_BlitSurface(backSurface, NULL, gScreenSurface, &dstBack) < 0 ||
+          SDL_BlitSurface(gSelectedOption, NULL, gScreenSurface, &dstSelectedOption) < 0) {
         printf("Error while blitting ranking surface!\n");
       }
       SDL_UpdateWindowSurface(gWindow);
@@ -692,6 +866,7 @@ void stageThree() {
   int i, j;
   SDL_Event e;
   int quantBlocks = 0;
+  int pausedGame = false;
   OBJECT npcBar;
   SDL_Rect srcNpcBar, dstNpcBar;
   FILE *pRankFile;
@@ -701,8 +876,10 @@ void stageThree() {
 
   /*create NULL blocks */
   block = (BLOCK**) calloc(ROWS, sizeof(BLOCK*));
+  if (!block) gQuit = true;
   for (i = 0; i < ROWS; i++){
     block[i] = (BLOCK*) calloc(COLUMNS, sizeof(BLOCK));
+    if (!block[i]) gQuit = true;
   }
 
   ball = createOBJECT(SCREEN_WIDTH/2 - BALL_WIDTH/2, SCREEN_HEIGHT - 100 - BALL_HEIGHT, 0, 0, gBallSurface);
@@ -743,13 +920,18 @@ void stageThree() {
       }
     }
   }
-  printf("%d blocks\n", quantBlocks);
 
-
+  /*if (gMusicCondition) {
+    Mix_PlayMusic(gStageThreeMusic, -1);
+  };*/
 
   while (!gQuit){
     while(SDL_PollEvent(&e) != 0) {
-        keyPressed(&ball, &bar, e, &gameStarted);
+      keyPressed(&ball, &bar, e, &gameStarted, pausedGame);
+      quitPressed(e);
+      turnSound(e);
+      turnMusic(e);
+      pause(&ball, &bar, &npcBar, e, &pausedGame);
     }
     SDL_FillRect(gScreenSurface, NULL, SDL_MapRGB(gScreenSurface->format, 0x66, 0xFF, 0xFF));
     dstInGameMenu.x = SCREEN_WIDTH;
@@ -910,6 +1092,7 @@ void stageTwo() {
   int i, j;
   SDL_Event e;
   int quantBlocks = 0;
+  int pausedGame = false;
   FILE *pRankFile;
   PLAYER jogador;
   PLAYER recordistas[5];
@@ -921,8 +1104,10 @@ void stageTwo() {
 
   /*create NULL blocks */
   block = (BLOCK**) calloc(ROWS, sizeof(BLOCK*));
+  if (!block) gQuit = true;
   for (i = 0; i < ROWS; i++){
     block[i] = (BLOCK*) calloc(COLUMNS, sizeof(BLOCK));
+    if (!block[i]) gQuit = true;
   }
 
   ball = createOBJECT(SCREEN_WIDTH/2 - BALL_WIDTH/2, SCREEN_HEIGHT - 100 - BALL_HEIGHT, 0, 0, gBallSurface);
@@ -942,13 +1127,19 @@ void stageTwo() {
     i = 9;
     block[i][j] = createBLOCK( BLOCK_WIDTH * j, BLOCK_HEIGHT * i, gBlockSurface, 2, PURPLE);
     quantBlocks++;
-
   }
 
+  /*if (gMusicCondition) {
+    Mix_PlayMusic(gStageTwoMusic, -1);
+  };*/
 
   while (!gQuit){
     while(SDL_PollEvent(&e) != 0) {
-        keyPressed(&ball, &bar, e, &gameStarted);
+      keyPressed(&ball, &bar, e, &gameStarted, pausedGame);
+      quitPressed(e);
+      turnSound(e);
+      turnMusic(e);
+      pause(&ball, &bar, &bar, e, &pausedGame);
     }
 
     SDL_FillRect(gScreenSurface, NULL, SDL_MapRGB(gScreenSurface->format, 0x66, 0xFF, 0xFF));
@@ -1094,6 +1285,7 @@ void stageTwo() {
     if (quantBlocks == 0){
       gPoints += 1000;
       /*return;*/
+      /*Mix_HaltMusic();*/
       stageThree();
     }
     if (gPoints%10000 == 0 && gPoints != 0) gLifes++;
@@ -1121,6 +1313,7 @@ void stageOne() {
   int i, j;
   SDL_Event e;
   int quantBlocks = 0;
+  int pausedGame = false;
   FILE *pRankFile;
   PLAYER jogador;
   PLAYER recordistas[5];
@@ -1133,8 +1326,10 @@ void stageOne() {
 
   /*create NULL blocks */
   block = (BLOCK**) calloc(ROWS, sizeof(BLOCK*));
+  if (!block) gQuit = true;
   for (i = 0; i < ROWS; i++){
     block[i] = (BLOCK*) calloc(COLUMNS, sizeof(BLOCK));
+    if (!block[i]) gQuit = true;
   }
 
   ball = createOBJECT(SCREEN_WIDTH/2 - BALL_WIDTH/2, SCREEN_HEIGHT - 100 - BALL_HEIGHT, 0, 0, gBallSurface);
@@ -1148,11 +1343,19 @@ void stageOne() {
     }
   }
 
+  if (gMusicCondition) {
+    Mix_PlayMusic(gStageOneMusic, -1);
+  };
+
   /* Starts game main loop */
   while (!gQuit){
     /* verifies if any key have been pressed */
     while(SDL_PollEvent(&e) != 0) {
-      keyPressed(&ball, &bar, e, &gameStarted);
+      quitPressed(e);
+      turnSound(e);
+      turnMusic(e);
+      pause(&ball, &bar, &bar, e, &pausedGame);
+      keyPressed(&ball, &bar, e, &gameStarted, pausedGame);
     }
     /* Fill screen surface with white */
     SDL_FillRect(gScreenSurface, NULL, SDL_MapRGB(gScreenSurface->format, 0x66, 0xFF, 0xFF));
@@ -1254,16 +1457,48 @@ void stageOne() {
     }
 
     /* ball's source */
-    srcBall.x = 0;
-    srcBall.y = 0;
+    switch (gBallColor) {
+      case 0:
+        srcBall.x = 0;
+        srcBall.y = 0;
+        break;
+      case 1:
+        srcBall.x = BALL_WIDTH;
+        srcBall.y = 0;
+        break;
+      case 2:
+        srcBall.x = 0;
+        srcBall.y = BALL_HEIGHT;
+        break;
+      case 3:
+        srcBall.x = BALL_WIDTH;
+        srcBall.y = BALL_HEIGHT;
+        break;
+    }
     srcBall.w = BALL_WIDTH;
     srcBall.h = BALL_HEIGHT;
     dstBall.x = ball.posX;
     dstBall.y = ball.posY;
 
     /* bar's source */
-    srcBar.x = 0;
-    srcBar.y = 0;
+    switch (gBarColor) {
+      case 0:
+        srcBar.x = 0;
+        srcBar.y = 0;
+        break;
+      case 1:
+        srcBar.x = BAR_WIDTH;
+        srcBar.y = 0;
+        break;
+      case 2:
+        srcBar.x = 0;
+        srcBar.y = BAR_HEIGHT;
+        break;
+      case 3:
+        srcBar.x = BAR_WIDTH;
+        srcBar.y = BAR_HEIGHT;
+        break;
+    }
     srcBar.w = BAR_WIDTH;
     srcBar.h = BAR_HEIGHT;
     dstBar.x = bar.posX;
@@ -1301,6 +1536,7 @@ void stageOne() {
     if (quantBlocks == 0) {
       gPoints += 1000;
       /*return;*/
+      Mix_HaltMusic();
       stageTwo();
     }
     if (gPoints%10000 == 0 && gPoints != 0) gLifes++;
@@ -1349,6 +1585,7 @@ void menu() {
   unsigned int cursor = 0;
   SDL_Event e;
   SDL_Rect dstMenu;
+  SDL_Rect dstSelect;
 
   dstMenu.x = 0;
   dstMenu.y = 0;
@@ -1395,25 +1632,29 @@ void menu() {
           }
           break;
       }
-    SDL_FillRect(gScreenSurface, NULL, SDL_MapRGB(gScreenSurface->format, 0x00, 0x00, 0x00));
-    switch(cursor) {
-      case 0:
-        SDL_BlitSurface(gStartSelected, NULL, gScreenSurface, &dstMenu);
-        break;
-      case 1:
-        SDL_BlitSurface(gRankingSelected, NULL, gScreenSurface, &dstMenu);
-        break;
-      case 2:
-        SDL_BlitSurface(gSettingsSelected, NULL, gScreenSurface, &dstMenu);
-        break;
-      case 3:
-        SDL_BlitSurface(gHelpSelected, NULL, gScreenSurface, &dstMenu);
-        break;
-      case 4:
-        SDL_BlitSurface(gExitSelected, NULL, gScreenSurface, &dstMenu);
-        break;
-    }
-    SDL_UpdateWindowSurface(gWindow);
+      switch(cursor) {
+        case 0:
+          dstSelect.y = 235;
+          break;
+        case 1:
+          dstSelect.y = 305;
+          break;
+        case 2:
+          dstSelect.y = 375;
+          break;
+        case 3:
+          dstSelect.y = 445;
+          break;
+        case 4:
+          dstSelect.y = 515;
+          break;
+      }
+      dstSelect.x = 310;
+      if (SDL_BlitSurface(gMenuSurface, NULL, gScreenSurface, &dstMenu) < 0 ||
+          SDL_BlitSurface(gSelectedOption, NULL, gScreenSurface, &dstSelect) < 0) {
+        printf("Error while blitting ranking surface!\n");
+      }
+      SDL_UpdateWindowSurface(gWindow);
     }
   }
 }
