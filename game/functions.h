@@ -32,5 +32,7 @@ void stageThree();
 int loadTextMedia();
 int loadInGameMenu();
 int loadRenderedText(char *, SDL_Color);
+void makeRank();
+void getPlayerName(char *jogador);
 
 #endif

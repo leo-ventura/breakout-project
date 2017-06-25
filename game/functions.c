@@ -438,6 +438,25 @@ SDL_Surface *loadRenderedText(char *text, SDL_Color textcolor) {
   return optimizedTextSurface;
 }
 
+SDL_Surface *loadGetNameRenderedText(TTF_Font *font, char *text, SDL_Color textcolor) {
+  SDL_Surface *optimizedTextSurface;
+
+  SDL_Surface *textSurface = TTF_RenderText_Solid(font, text, textcolor);
+  if (!textSurface) {
+    printf("Unable to render text. Error: %s\n", TTF_GetError());
+    return false;
+  }
+
+  optimizedTextSurface = SDL_ConvertSurface(textSurface, gScreenSurface->format, 0);
+  if (!optimizedTextSurface) {
+    printf("Unable to create texture. Error: %s\n", TTF_GetError());
+    return false;
+  }
+  SDL_FreeSurface(textSurface);
+
+  return optimizedTextSurface;
+}
+
 int loadTextMedia() {
   int success = true;
 
@@ -606,7 +625,6 @@ void turnMusic(SDL_Event e, int stage){
   }
 }
 
-
 void quitPressed(SDL_Event e){
   switch(e.type) {
       case SDL_QUIT:
@@ -748,11 +766,9 @@ void settings() {
             }
             if (e.key.keysym.sym == SDLK_UP) {
                 cursor = (cursor+5)%6;
-                printf("%d\n", cursor);
             }
             if (e.key.keysym.sym == SDLK_DOWN) {
                 cursor = (cursor+1)%6;
-                printf("%d\n", cursor);
             }
             else if (e.key.keysym.sym == SDLK_RETURN) {
               switch(cursor) {
@@ -874,72 +890,6 @@ void help() {
   printf("Entrei em Help\n");
 }
 
-void makeRank(){
-  FILE *pRankFile;
-  PLAYER jogador[1];
-  PLAYER recordistas[5];
-  PLAYER aux, aux2;
-  int i, j;
-
-  jogador[0].points = gPoints;
-
-  pRankFile = fopen("rankings.bin", "r+");
-  if(!pRankFile){
-    /*pRankFile = fopen("rankings.bin", "wb");
-
-    printf("Congratulations, you set a new record!\n");
-    printf("Please, proceed to inform your name. (20 characters maximum)\n");
-    fgets(jogador[0].name, 20, stdin);
-    jogador[0].name[strlen(jogador[0].name) - 1] = '\0';
-
-    fwrite(jogador, sizeof(PLAYER), 1, pRankFile);
-    */
-    perror("Could not open the rankings file! Error: ");
-  }
-  else {
-
-    fread(recordistas, sizeof(PLAYER), 5, pRankFile);
-    /* Searches for values in the top 5 ranks that are lower than the
-       the new player score. */
-    printf("%s %d\n", recordistas[2].name, recordistas[4].points);
-
-    for(i = 0; i < 5; i++){
-      if(recordistas[i].points < jogador[0].points){
-
-        printf("Congratulations, you set a new record!\n");
-        printf("Please, proceed to inform your name. (20 characters maximum)\n");
-        fgets(jogador[0].name, 20, stdin);
-        jogador[0].name[strlen(jogador[0].name) - 1] = '\0';
-
-        /* Includes the player score in the rankings */
-        aux = recordistas[i];
-        recordistas[i] = jogador[0];
-
-        /* Updates the ranking table with the new top 5 scores */
-        for(j = i+1; j < 5; j++){
-          aux2 = recordistas[j];
-          recordistas[j] = aux;
-          aux = aux2;
-        }
-        break;
-      }
-    }
-
-    fclose(pRankFile);
-    pRankFile = fopen("rankings.bin", "wb");
-
-    if(!pRankFile){
-      perror("Ranking file could not be replaced! Error: ");
-      /*return;*/
-    }
-    else{
-      fwrite(recordistas, sizeof(PLAYER), 5, pRankFile);
-      fclose(pRankFile);
-    }
-    /*return;*/
-  }
-}
-
 void stageThree() {
   OBJECT ball;
   OBJECT bar;
@@ -947,7 +897,16 @@ void stageThree() {
   SDL_Rect srcBall, dstBall;
   SDL_Rect srcBar, dstBar;
   SDL_Rect dstInGameMenu; /* menu dimensions */
-  /*SDL_Color textcolor = {255, 255, 255}; *//* sets textcolor as white */
+  SDL_Color textcolor = {255, 255, 255}; /* sets textcolor as white */
+  SDL_Rect dstPoints;
+  char points[40];
+  char npoints[10];
+  SDL_Rect dstLifes;
+  char lifes[40];
+  char nlifes[4];
+  SDL_Rect dstBlocks;
+  char blocks[40];
+  char nblocks[5];
   int gameStarted = false; /*verify if space bar have already been pressed to start the game*/
   int i, j;
   SDL_Event e;
@@ -956,6 +915,9 @@ void stageThree() {
   OBJECT npcBar;
   SDL_Rect srcNpcBar, dstNpcBar;
 
+  if (!loadInGameMenu()) {
+    printf("Unable to load text media!\n");
+  }
 
   /*create NULL blocks */
   block = (BLOCK**) calloc(ROWS, sizeof(BLOCK*));
@@ -1023,6 +985,21 @@ void stageThree() {
     dstInGameMenu.w = WINDOW_WIDTH - SCREEN_WIDTH;
     SDL_FillRect(gScreenSurface, &dstInGameMenu, SDL_MapRGB(gScreenSurface->format, 0x00, 0x00, 0x00));
 
+    strcpy(points, "Points: ");
+    sprintf(npoints, "%d", gPoints);
+    strcat(points, npoints);
+    gInGamePoints = loadRenderedText(points, textcolor);
+
+    strcpy(lifes, "Lifes: ");
+    sprintf(nlifes, "%d", gLifes);
+    strcat(lifes, nlifes);
+    gInGameLife = loadRenderedText(lifes, textcolor);
+
+    strcpy(blocks, "Blocks left: ");
+    sprintf(nblocks, "%d", quantBlocks);
+    strcat(blocks, nblocks);
+    gInGameBlocks = loadRenderedText(blocks, textcolor);
+
     moveNPCBAR(&npcBar);
     moveBAR(&bar, &ball, gameStarted);
     moveOBJECT(&ball);
@@ -1034,14 +1011,10 @@ void stageThree() {
     }
     gameOver(&ball, &bar, &gameStarted);
 
-
-    /* INICIO DA EDICAO DO TOSTES */
     if (gLifes < 0) {
       makeRank();
       gQuit = true;
     }
-    /* FIM DA EDICAO DO TOSTES */
-
 
     collisionBar(bar, &ball);
     collisionNpcBar(npcBar, &ball);
@@ -1069,6 +1042,14 @@ void stageThree() {
     dstNpcBar.x = npcBar.posX;
     dstNpcBar.y = npcBar.posY;
 
+    dstPoints.x = SCREEN_WIDTH + 30;
+    dstPoints.y = 30;
+
+    dstLifes.x = SCREEN_WIDTH + 30;
+    dstLifes.y = 130;
+
+    dstBlocks.x = SCREEN_WIDTH + 30;
+    dstBlocks.y = 230;
 
     for (j = 0; j < COLUMNS; j++) {
       for (i = 0; i < ROWS; i++) {
@@ -1078,7 +1059,10 @@ void stageThree() {
 
     if(SDL_BlitSurface(ball.image, &srcBall, gScreenSurface, &dstBall) < 0 ||
       SDL_BlitSurface(bar.image, &srcBar, gScreenSurface, &dstBar) < 0 ||
-      SDL_BlitSurface(npcBar.image, &srcNpcBar, gScreenSurface, &dstNpcBar) < 0) {
+      SDL_BlitSurface(npcBar.image, &srcNpcBar, gScreenSurface, &dstNpcBar) < 0 ||
+      SDL_BlitSurface(gInGameLife, NULL, gScreenSurface, &dstLifes) < 0 ||
+      SDL_BlitSurface(gInGameBlocks, NULL, gScreenSurface, &dstBlocks) < 0 ||
+      SDL_BlitSurface(gInGamePoints, NULL, gScreenSurface, &dstPoints) < 0) {
         printf("SDL could not blit! SDL Error: %s\n", SDL_GetError());
         gQuit = true;
     }
@@ -1357,7 +1341,6 @@ void stageOne() {
     gameOver(&ball, &bar, &gameStarted);
     if (gLifes < 0) {
       makeRank();
-      gQuit = true;
     }
 
     /* ball's source */
@@ -1529,6 +1512,11 @@ void ranking() {
       }
       SDL_UpdateWindowSurface(gWindow);
   }
+  for (i = 0; i < 5; i++) {
+    SDL_FreeSurface(name[i]);
+    SDL_FreeSurface(pontuation[i]);
+  }
+  SDL_FreeSurface(backSurface);
 }
 
 void menu() {
@@ -1607,4 +1595,229 @@ void menu() {
       SDL_UpdateWindowSurface(gWindow);
     }
   }
+}
+
+void getPlayerName(char *jogador) {
+  SDL_Rect dstGetName, dstCongrats;
+  SDL_Surface *getName = NULL;
+  SDL_Surface *congrats = NULL;
+  SDL_Color textcolor = {255, 255, 255};
+  SDL_Event e;
+  SDL_Rect dstwriteName, srcwriteName;
+  SDL_Surface *writeName = NULL;
+  int returning = false;
+  /*char jogador[21];*/
+  TTF_Font *font = NULL;
+
+  font = TTF_OpenFont("../image_library/alagard_BitFont.ttf", 35);
+  if (!font) {
+    printf("Failed to load font! Error: %s\n", TTF_GetError());
+    gQuit = true;
+  }
+
+  SDL_FillRect(gScreenSurface, NULL, SDL_MapRGB(gScreenSurface->format, 0x00, 0x00, 0x00));
+  congrats = loadGetNameRenderedText(font, "Congratulations! You set a new record!", textcolor);
+  getName = loadGetNameRenderedText(font, "Please, enter your name.", textcolor);
+
+  dstCongrats.x = WINDOW_WIDTH/2 - 300;
+  dstCongrats.y = WINDOW_HEIGHT/2 - 150;
+
+  dstGetName.x = WINDOW_WIDTH/2 - 300;
+  dstGetName.y = WINDOW_HEIGHT/2 - 100;
+
+
+  if (SDL_BlitSurface(congrats, NULL, gScreenSurface, &dstCongrats) < 0 ||
+      SDL_BlitSurface(getName, NULL, gScreenSurface, &dstGetName) < 0) {
+    printf("Error while blitting the surface\n");
+  }
+
+  gFont = TTF_OpenFont("../image_library/alagard_BitFont.ttf", 28);
+  if (!gFont) {
+    printf("Failed to load font! Error: %s\n", TTF_GetError());
+    gQuit = true;
+  }
+
+  dstwriteName.x = WINDOW_WIDTH/2 - 300;
+  dstwriteName.y = WINDOW_HEIGHT/2;
+  dstwriteName.w = 200;
+  dstwriteName.h = 100;
+  srcwriteName.w = 200;
+  srcwriteName.h = 100;
+
+  strcpy(jogador, "\0");
+
+  while (!gQuit && returning == false) {
+    if (strlen(jogador) < 20) {
+      while (SDL_PollEvent(&e) != 0) {
+        switch(e.type) {
+          case SDL_QUIT:
+            gQuit = true;
+            break;
+          case SDL_KEYDOWN:
+            if (e.key.keysym.sym == SDLK_RETURN) {
+              returning = true;
+            }
+            else if (e.key.keysym.sym == SDLK_ESCAPE) {
+              gQuit = true;
+            }
+            else if (e.key.keysym.sym == SDLK_SPACE) {
+              strcat(jogador, " ");
+            }
+            else if (e.key.keysym.sym == SDLK_a) {
+              strcat(jogador, "A");
+            }
+            else if (e.key.keysym.sym == SDLK_b) {
+              strcat(jogador, "B");
+            }
+            else if (e.key.keysym.sym == SDLK_c) {
+              strcat(jogador, "C");
+            }
+            else if (e.key.keysym.sym == SDLK_d) {
+              strcat(jogador, "D");
+            }
+            else if (e.key.keysym.sym == SDLK_e) {
+              strcat(jogador, "E");
+            }
+            else if (e.key.keysym.sym == SDLK_f) {
+              strcat(jogador, "F");
+            }
+            else if (e.key.keysym.sym == SDLK_g) {
+              strcat(jogador, "G");
+            }
+            else if (e.key.keysym.sym == SDLK_h) {
+              strcat(jogador, "H");
+            }
+            else if (e.key.keysym.sym == SDLK_i) {
+              strcat(jogador, "I");
+            }
+            else if (e.key.keysym.sym == SDLK_j) {
+              strcat(jogador, "J");
+            }
+            else if (e.key.keysym.sym == SDLK_k) {
+              strcat(jogador, "K");
+            }
+            else if (e.key.keysym.sym == SDLK_l) {
+              strcat(jogador, "L");
+            }
+            else if (e.key.keysym.sym == SDLK_m) {
+              strcat(jogador, "M");
+            }
+            else if (e.key.keysym.sym == SDLK_n) {
+              strcat(jogador, "N");
+            }
+            else if (e.key.keysym.sym == SDLK_o) {
+              strcat(jogador, "O");
+            }
+            else if (e.key.keysym.sym == SDLK_p) {
+              strcat(jogador, "P");
+            }
+            else if (e.key.keysym.sym == SDLK_q) {
+              strcat(jogador, "Q");
+            }
+            else if (e.key.keysym.sym == SDLK_r) {
+              strcat(jogador, "R");
+            }
+            else if (e.key.keysym.sym == SDLK_s) {
+              strcat(jogador, "S");
+            }
+            else if (e.key.keysym.sym == SDLK_t) {
+              strcat(jogador, "T");
+            }
+            else if (e.key.keysym.sym == SDLK_u) {
+              strcat(jogador, "U");
+            }
+            else if (e.key.keysym.sym == SDLK_v) {
+              strcat(jogador, "V");
+            }
+            else if (e.key.keysym.sym == SDLK_w) {
+              strcat(jogador, "W");
+            }
+            else if (e.key.keysym.sym == SDLK_x) {
+              strcat(jogador, "X");
+            }
+            else if (e.key.keysym.sym == SDLK_y) {
+              strcat(jogador, "Y");
+            }
+            else if (e.key.keysym.sym == SDLK_z) {
+              strcat(jogador, "Z");
+            }
+            else if (e.key.keysym.sym == SDLK_BACKSPACE) {
+              if (strlen(jogador) > 0) jogador[strlen(jogador) - 1] = 0;
+            }
+            break;
+        }
+        writeName = loadRenderedText(jogador, textcolor);
+        if (SDL_BlitSurface(writeName, NULL, gScreenSurface, &dstwriteName) < 0) {
+          printf("Error while blitting the surface\n");
+        }
+      }
+    }
+    else {
+      while (SDL_PollEvent(&e) != 0) {
+        switch(e.type) {
+          case SDL_QUIT:
+            gQuit = true;
+            break;
+          case SDL_KEYDOWN:
+            if (e.key.keysym.sym == SDLK_RETURN) {
+              returning = true;
+            }
+        }
+      }
+    }
+    SDL_UpdateWindowSurface(gWindow);
+  }
+  SDL_FreeSurface(getName);
+  SDL_FreeSurface(writeName);
+}
+
+void makeRank() {
+  FILE *pRankFile;
+  PLAYER jogador;
+  PLAYER recordistas[6];
+  PLAYER aux;
+  int i;
+
+  jogador.points = gPoints;
+
+  pRankFile = fopen("rankings.bin", "r+");
+  if(!pRankFile) {
+    perror("Could not open the rankings file! Error: ");
+  }
+  else {
+    fread(recordistas, sizeof(PLAYER), 5, pRankFile);
+    /* Searches for values in the top 5 ranks that are lower than the
+       the new player score. */
+
+    for(i = 0; i < 5; i++){
+      if(recordistas[i].points < jogador.points) {
+
+        getPlayerName(&*(jogador.name));
+        recordistas[5] = jogador;
+        break;
+      }
+    }
+    for (i = 5; i > 0; i--) {
+      if (recordistas[i].points > recordistas[i-1].points) {
+        aux = recordistas[i];
+        recordistas[i] = recordistas[i-1];
+        recordistas[i-1] = aux;
+      }
+    }
+  }
+
+  fclose(pRankFile);
+  pRankFile = fopen("rankings.bin", "wb");
+
+  if(!pRankFile){
+    perror("Ranking file could not be replaced! Error: ");
+    /*return;*/
+  }
+
+  else {
+    fwrite(recordistas, sizeof(PLAYER), 5, pRankFile);
+    fclose(pRankFile);
+  }
+  /*return;*/
+  menu();
 }
