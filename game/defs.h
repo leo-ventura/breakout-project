@@ -44,7 +44,7 @@ typedef struct _BLOCK {
 
 typedef struct _PLAYER{
   int points;
-  char name[20];
+  char name[21];
 } PLAYER;
 
 #endif

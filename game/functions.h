@@ -21,7 +21,7 @@ void keyPressed(OBJECT*, OBJECT*, SDL_Event, int*, int);
 void pause(OBJECT*, OBJECT*, OBJECT*, SDL_Event, int*);
 void quitPressed(SDL_Event);
 void turnSound(SDL_Event);
-void turnMusic(SDL_Event);
+void turnMusic(SDL_Event, int);
 void menu();
 void ranking();
 void settings();
