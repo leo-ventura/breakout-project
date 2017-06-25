@@ -1571,8 +1571,11 @@ void ranking() {
   PLAYER records[5];
   SDL_Surface* name[5];
   SDL_Surface* pontuation[5];
+  SDL_Surface* backSurface;
   SDL_Rect dstName[5];
   SDL_Rect dstPoints[5];
+  SDL_Rect dstBack;
+  SDL_Rect dstSelect;
   char nPoints[10];
   int i;
 
@@ -1597,13 +1600,18 @@ void ranking() {
   }
 
   gRankingText = loadRenderedText("Ranking", textcolor);
-  if (!gRankingText) {
+  backSurface = loadRenderedText("Back", textcolor);
+  if (!gRankingText || !backSurface) {
     printf("Failed to render text! Error: %s\n", TTF_GetError());
     gQuit = true;
   }
 
   dstRanking.x = WINDOW_WIDTH/2 - 100;
   dstRanking.y = 100;
+  dstBack.x = WINDOW_WIDTH/2 - 70;
+  dstBack.y = 450;
+  dstSelect.x = WINDOW_WIDTH/2 - 90 - SELECT_WIDTH;
+  dstSelect.y = 450;
 
   while(!gQuit && !returning) {
     while (SDL_PollEvent(&e) != 0) {
@@ -1621,7 +1629,9 @@ void ranking() {
           }
       }
       SDL_FillRect(gScreenSurface, NULL, SDL_MapRGB(gScreenSurface->format, 0x00, 0x00, 0x00));
-      if (SDL_BlitSurface(gRankingText, NULL, gScreenSurface, &dstRanking) < 0) {
+      if (SDL_BlitSurface(gRankingText, NULL, gScreenSurface, &dstRanking) < 0 ||
+          SDL_BlitSurface(backSurface, NULL, gScreenSurface, &dstBack) < 0 ||
+          SDL_BlitSurface(gSelectedOption, NULL, gScreenSurface, &dstSelect) < 0) {
         printf("Error while blitting ranking surface!\n");
         gQuit = true;
       }
