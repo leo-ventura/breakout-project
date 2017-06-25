@@ -1603,7 +1603,7 @@ void getPlayerName(char *jogador) {
   SDL_Surface *congrats = NULL;
   SDL_Color textcolor = {255, 255, 255};
   SDL_Event e;
-  SDL_Rect dstwriteName, srcwriteName;
+  SDL_Rect dstwriteName;
   SDL_Surface *writeName = NULL;
   int returning = false;
   /*char jogador[21];*/
@@ -1641,8 +1641,6 @@ void getPlayerName(char *jogador) {
   dstwriteName.y = WINDOW_HEIGHT/2;
   dstwriteName.w = 200;
   dstwriteName.h = 100;
-  srcwriteName.w = 200;
-  srcwriteName.h = 100;
 
   strcpy(jogador, "\0");
 
@@ -1655,6 +1653,7 @@ void getPlayerName(char *jogador) {
             break;
           case SDL_KEYDOWN:
             if (e.key.keysym.sym == SDLK_RETURN) {
+              if (strlen(jogador) == 0) strcat(jogador, "UNKNOWN");
               returning = true;
             }
             else if (e.key.keysym.sym == SDLK_ESCAPE) {
@@ -1742,13 +1741,24 @@ void getPlayerName(char *jogador) {
               strcat(jogador, "Z");
             }
             else if (e.key.keysym.sym == SDLK_BACKSPACE) {
-              if (strlen(jogador) > 0) jogador[strlen(jogador) - 1] = 0;
+              if (strlen(jogador) > 0) {
+                jogador[strlen(jogador)-1] = 0;
+                SDL_FillRect(gScreenSurface, &dstwriteName, SDL_MapRGB(gScreenSurface->format, 0x00, 0x00, 0x00));
+              }
+              else {
+                jogador = jogador; /* trying to avoid unnecessary prints on terminal */
+              }
+            }
+            else {
+              jogador = jogador; /* trying to avoid unnecessary prints on terminal */
             }
             break;
         }
-        writeName = loadRenderedText(jogador, textcolor);
-        if (SDL_BlitSurface(writeName, NULL, gScreenSurface, &dstwriteName) < 0) {
-          printf("Error while blitting the surface\n");
+        if (strlen(jogador) > 0) {
+          writeName = loadRenderedText(jogador, textcolor);
+          if (SDL_BlitSurface(writeName, NULL, gScreenSurface, &dstwriteName) < 0) {
+            printf("Error while blitting the surface\n");
+          }
         }
       }
     }
@@ -1761,6 +1771,19 @@ void getPlayerName(char *jogador) {
           case SDL_KEYDOWN:
             if (e.key.keysym.sym == SDLK_RETURN) {
               returning = true;
+            }
+            else if (e.key.keysym.sym == SDLK_BACKSPACE) {
+              if (strlen(jogador) > 0) {
+                jogador[strlen(jogador)-1] = 0;
+                SDL_FillRect(gScreenSurface, &dstwriteName, SDL_MapRGB(gScreenSurface->format, 0x00, 0x00, 0x00));
+              }
+              else {
+                jogador = jogador; /* trying to avoid unnecessary prints on terminal */
+              }
+            }
+            writeName = loadRenderedText(jogador, textcolor);
+            if (SDL_BlitSurface(writeName, NULL, gScreenSurface, &dstwriteName) < 0) {
+              printf("Error while blitting the surface\n");
             }
         }
       }
