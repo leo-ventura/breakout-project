@@ -15,7 +15,7 @@ void drawBlock(BLOCK);
 void collisionBlock(BLOCK*, OBJECT*, int*);
 void collisionNpcBar(OBJECT, OBJECT*);
 double distance(double, double, double, double);
-void gameOver(OBJECT*, OBJECT*, int*); /* check wheter player loses one life */
+void loseLife(OBJECT*, OBJECT*, int*); /* check wheter player loses one life */
 void collisionBar(OBJECT, OBJECT*);
 void keyPressed(OBJECT*, OBJECT*, SDL_Event, int*, int);
 void pause(OBJECT*, OBJECT*, OBJECT*, SDL_Event, int*);
@@ -26,9 +26,9 @@ void menu();
 void ranking();
 void settings();
 void help();
-void stageOne();
-void stageTwo();
-void stageThree();
+int stageOne();
+int stageTwo();
+int stageThree();
 int loadTextMedia();
 int loadInGameMenu();
 int loadRenderedText(char *, SDL_Color);

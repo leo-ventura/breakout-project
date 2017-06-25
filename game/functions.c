@@ -312,7 +312,7 @@ void moveNPCBAR(OBJECT *p) {
     }
 }
 
-void gameOver(OBJECT *ball, OBJECT *bar, int *gameStarted){
+void loseLife(OBJECT *ball, OBJECT *bar, int *gameStarted){
   if (ball->posY > SCREEN_HEIGHT){
     gLifes--;
     *gameStarted = false;
@@ -902,7 +902,7 @@ void help() {
   printf("Entrei em Help\n");
 }
 
-void stageThree() {
+int stageThree() {
   OBJECT ball;
   OBJECT bar;
   BLOCK** block;
@@ -1022,13 +1022,8 @@ void stageThree() {
         collisionBlock(&block[i][j], &ball, &quantBlocks);
       }
     }
-    gameOver(&ball, &bar, &gameStarted);
-
-    if (gLifes < 0) {
-      makeRank();
-      gQuit = true;
-    }
-
+    loseLife(&ball, &bar, &gameStarted);
+    if (gLifes < 0) return 0;
     collisionBar(bar, &ball);
     collisionNpcBar(npcBar, &ball);
 
@@ -1087,14 +1082,13 @@ void stageThree() {
     SDL_Delay(2.5);
     if (quantBlocks == 0){
       gPoints += 1000;
-      /*return;*/
-      stageThree();
+      return 1;
     }
     if (gPoints%10000 == 0 && gPoints != 0) gLifes++;
   }
 }
 
-void stageTwo() {
+int stageTwo() {
   OBJECT ball;
   OBJECT bar;
   BLOCK** block;
@@ -1194,12 +1188,8 @@ void stageTwo() {
     }
 
     collisionBar(bar, &ball);
-    gameOver(&ball, &bar, &gameStarted);
-    if (gLifes < 0) {
-      makeRank();
-      gQuit = true;
-    }
-
+    loseLife(&ball, &bar, &gameStarted);
+    if (gLifes < 0) return 0;
 
     srcBall.x = 0;
     srcBall.y = 0;
@@ -1247,15 +1237,14 @@ void stageTwo() {
     SDL_Delay(2.5);
     if (quantBlocks == 0){
       gPoints += 1000;
-      /*return;*/
       /*Mix_HaltMusic();*/
-      stageThree();
+      return 1;
     }
     if (gPoints%10000 == 0 && gPoints != 0) gLifes++;
   }
 }
 
-void stageOne() {
+int stageOne() {
   OBJECT ball;
   OBJECT bar;
   BLOCK** block;
@@ -1276,6 +1265,8 @@ void stageOne() {
   int i, j;
   SDL_Event e;
   int quantBlocks = 0;
+  gLifes = 3;
+  gPoints = 0;
   int pausedGame = false;
   Mix_VolumeMusic(VOLUME);
 
@@ -1352,11 +1343,8 @@ void stageOne() {
     /* check collision between ball and bar */
     collisionBar(bar, &ball);
 
-    gameOver(&ball, &bar, &gameStarted);
-    if (gLifes < 0) {
-      makeRank();
-    }
-
+    loseLife(&ball, &bar, &gameStarted);
+    if (gLifes < 0) return 0;
     /* ball's source */
     switch (gBallColor) {
       case 0:
@@ -1436,9 +1424,8 @@ void stageOne() {
     SDL_Delay(2.5);
     if (quantBlocks == 0) {
       gPoints += 1000;
-      /*return;*/
       Mix_HaltMusic();
-      stageTwo();
+      return 1;
     }
     if (gPoints%10000 == 0 && gPoints != 0) gLifes++;
   }
@@ -1460,7 +1447,6 @@ void ranking() {
   SDL_Rect dstSelect;
   char nPoints[10];
   int i;
-
 
   parq = fopen("rankings.bin", "r");
   if (!parq) {
@@ -1557,7 +1543,12 @@ void menu() {
           if (e.key.keysym.sym == SDLK_RETURN) {
             switch(cursor) {
               case 0:
-                stageOne();
+                if (stageOne()) {
+                  if (stageTwo()) {
+                    stageThree();
+                  }
+                }
+                makeRank();
                 break;
               case 1:
                 ranking();
@@ -1811,7 +1802,7 @@ void getPlayerName(char *jogador) {
 void makeRank() {
   FILE *pRankFile;
   PLAYER jogador;
-  PLAYER recordistas[6];
+  PLAYER recordistas[5];
   PLAYER aux;
   int i;
 
@@ -1826,15 +1817,11 @@ void makeRank() {
     /* Searches for values in the top 5 ranks that are lower than the
        the new player score. */
 
-    for(i = 0; i < 5; i++){
-      if(recordistas[i].points < jogador.points) {
-
-        getPlayerName(&*(jogador.name));
-        recordistas[5] = jogador;
-        break;
-      }
+    if(recordistas[4].points < jogador.points) {
+      getPlayerName(&*(jogador.name));
+      recordistas[4] = jogador;
     }
-    for (i = 5; i > 0; i--) {
+    for (i = 4; i >= 0; i--) {
       if (recordistas[i].points > recordistas[i-1].points) {
         aux = recordistas[i];
         recordistas[i] = recordistas[i-1];
@@ -1856,5 +1843,5 @@ void makeRank() {
     fclose(pRankFile);
   }
   /*return;*/
-  menu();
+  ranking();
 }
