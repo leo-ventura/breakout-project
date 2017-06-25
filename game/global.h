@@ -8,6 +8,7 @@ extern int gBarColor;
 extern int gBallColor;
 extern int gSoundCondition;
 extern int gMusicCondition;
+extern int gVolume;
 extern SDL_Window *gWindow;
 extern SDL_Surface *gScreenSurface;
 extern SDL_Surface *gMenuSurface;

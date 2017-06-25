@@ -21,6 +21,8 @@
 #define GREEN 2
 #define YELLOW 3
 #define PURPLE 4
+#define VOLUME gVolume*5
+
 
 typedef struct _OBJECT {
   double posX;

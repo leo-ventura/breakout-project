@@ -726,11 +726,12 @@ void settings() {
   SDL_Rect dstBarColor;
   SDL_Rect dstBack;
   SDL_Rect dstSelectedOption;
-  char volume[20] = "Volume: ";
+  char volume[20];
   char music[20];
   char sound[20];
   char strBallColor[40];
   char strBarColor[40];
+  char strVolume[5];
 
 
   dstSettings.x = WINDOW_WIDTH/2 - 100;
@@ -786,7 +787,7 @@ void settings() {
             else if (e.key.keysym.sym == SDLK_RIGHT) {
               switch(cursor) {
                 case 0:
-                  /*volume*/
+                  gVolume = (gVolume+1)%11;
                   break;
                 case 1:
                   gMusicCondition = !gMusicCondition;
@@ -805,7 +806,7 @@ void settings() {
             else if (e.key.keysym.sym == SDLK_LEFT) {
               switch(cursor) {
                 case 0:
-                  /*volume*/
+                  gVolume = (gVolume+10)%11;
                   break;
                 case 1:
                   gMusicCondition = !gMusicCondition;
@@ -855,6 +856,9 @@ void settings() {
       strcat(strBallColor, gBallColor==0? "Red" : gBallColor==1? "Blue" : gBallColor==2? "Green" : "Yellow");
       strcpy(strBarColor, "Bar Color: ");
       strcat(strBarColor, gBarColor==0? "Red" : gBarColor==1? "Blue" : gBarColor==2? "Green" : "Yellow");
+      strcpy(volume, "Volume: ");
+      sprintf(strVolume, "%d", gVolume);
+      strcat(volume, strVolume);
 
       gSettingsText = loadRenderedText("Settings", textcolor);
       volumeSurface = loadRenderedText(volume, textcolor);
@@ -884,6 +888,14 @@ void settings() {
     }
   }
   SDL_FreeSurface(volumeSurface);
+  SDL_FreeSurface(musicSurface);
+  SDL_FreeSurface(soundSurface);
+  SDL_FreeSurface(ballColorSurface);
+  SDL_FreeSurface(barColorSurface);
+  SDL_FreeSurface(backSurface);
+  Mix_VolumeChunk(gCollisionBarSound, VOLUME);
+  Mix_VolumeChunk(gCollisionBlockSound, VOLUME);
+  Mix_VolumeChunk(gDestroyBlockSound, VOLUME);
 }
 
 void help() {
@@ -914,6 +926,7 @@ void stageThree() {
   int pausedGame = false;
   OBJECT npcBar;
   SDL_Rect srcNpcBar, dstNpcBar;
+  Mix_VolumeMusic(VOLUME);
 
   if (!loadInGameMenu()) {
     printf("Unable to load text media!\n");
@@ -1103,6 +1116,7 @@ void stageTwo() {
   SDL_Event e;
   int quantBlocks = 0;
   int pausedGame = false;
+  Mix_VolumeMusic(VOLUME);
 
   if (!loadInGameMenu()) {
     printf("Unable to load text media!\n");
@@ -1263,7 +1277,7 @@ void stageOne() {
   SDL_Event e;
   int quantBlocks = 0;
   int pausedGame = false;
-
+  Mix_VolumeMusic(VOLUME);
 
   if (!loadInGameMenu()) {
     printf("Unable to load text media!\n");

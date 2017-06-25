@@ -9,6 +9,7 @@ int gPoints = 0;
 int gLifes = 3;
 int gSoundCondition = 1;
 int gMusicCondition = 1;
+int gVolume = 10;
 int gBarColor = 2;
 int gBallColor = 1;
 /* The window we'll be rendering to */
