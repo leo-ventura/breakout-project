@@ -12,6 +12,7 @@ int gMusicCondition = 1;
 int gVolume = 10;
 int gBarColor = 2;
 int gBallColor = 1;
+int gOver = false;
 /* The window we'll be rendering to */
 SDL_Window *gWindow = NULL;
 /* The surface contained by the window */
