@@ -499,7 +499,12 @@ int loadMedia() {
 
     gSelectedOption = loadSurface("../image_library/select.png");
 
-    if(!gBallSurface || !gBlockSurface || !gBarSurface || !gNpcBarSurface || !gMenuSurface || !gSelectedOption) {
+    gMusicButton = loadSurface("../image_library/musicOnOff.png");
+
+    gSoundButton = loadSurface("../image_library/soundOnOff.png");
+
+    if(!gBallSurface || !gBlockSurface || !gBarSurface || !gNpcBarSurface || !gMenuSurface || !gSelectedOption
+        || !gMusicButton || !gSoundButton) {
         printf( "Failed to load image! SDL Error: %s\n", SDL_GetError() );
         success = false;
     }
@@ -909,6 +914,8 @@ int stageThree() {
   SDL_Rect srcBall, dstBall;
   SDL_Rect srcBar, dstBar;
   SDL_Rect dstInGameMenu; /* menu dimensions */
+  SDL_Rect dstMusicButton, srcMusicButton;
+  SDL_Rect dstSoundButton, srcSoundButton;
   SDL_Color textcolor = {255, 255, 255}; /* sets textcolor as white */
   SDL_Rect dstPoints;
   char points[40];
@@ -1059,6 +1066,20 @@ int stageThree() {
     dstBlocks.x = SCREEN_WIDTH + 30;
     dstBlocks.y = 230;
 
+    dstMusicButton.x = SCREEN_WIDTH + 30;
+    dstMusicButton.y = 300;
+    srcMusicButton.w = BUTTON_WIDTH;
+    srcMusicButton.h = BUTTON_HEIGHT;
+    srcMusicButton.y = 0;
+    srcMusicButton.x = gMusicCondition? 0 : BUTTON_WIDTH;
+
+    dstSoundButton.x = SCREEN_WIDTH + 60 + BUTTON_WIDTH;
+    dstSoundButton.y = 300;
+    srcSoundButton.w = BUTTON_WIDTH;
+    srcSoundButton.h = BUTTON_HEIGHT;
+    srcSoundButton.y = 0;
+    srcSoundButton.x = gSoundCondition? 0 : BUTTON_WIDTH;
+
     for (j = 0; j < COLUMNS; j++) {
       for (i = 0; i < ROWS; i++) {
         if (block[i][j].resistance > 0) drawBlock(block[i][j]);
@@ -1066,11 +1087,13 @@ int stageThree() {
     }
 
     if(SDL_BlitSurface(ball.image, &srcBall, gScreenSurface, &dstBall) < 0 ||
-      SDL_BlitSurface(bar.image, &srcBar, gScreenSurface, &dstBar) < 0 ||
-      SDL_BlitSurface(npcBar.image, &srcNpcBar, gScreenSurface, &dstNpcBar) < 0 ||
-      SDL_BlitSurface(gInGameLife, NULL, gScreenSurface, &dstLifes) < 0 ||
-      SDL_BlitSurface(gInGameBlocks, NULL, gScreenSurface, &dstBlocks) < 0 ||
-      SDL_BlitSurface(gInGamePoints, NULL, gScreenSurface, &dstPoints) < 0) {
+        SDL_BlitSurface(bar.image, &srcBar, gScreenSurface, &dstBar) < 0 ||
+        SDL_BlitSurface(npcBar.image, &srcNpcBar, gScreenSurface, &dstNpcBar) < 0 ||
+        SDL_BlitSurface(gInGameLife, NULL, gScreenSurface, &dstLifes) < 0 ||
+        SDL_BlitSurface(gInGameBlocks, NULL, gScreenSurface, &dstBlocks) < 0 ||
+        SDL_BlitSurface(gInGamePoints, NULL, gScreenSurface, &dstPoints) < 0 ||
+        SDL_BlitSurface(gMusicButton, &srcMusicButton, gScreenSurface, &dstMusicButton) < 0 ||
+        SDL_BlitSurface(gSoundButton, &srcSoundButton, gScreenSurface, &dstSoundButton) < 0) {
         printf("SDL could not blit! SDL Error: %s\n", SDL_GetError());
         gQuit = true;
     }
@@ -1095,6 +1118,8 @@ int stageTwo() {
   SDL_Rect srcBall, dstBall;
   SDL_Rect srcBar, dstBar;
   SDL_Rect dstInGameMenu; /* menu dimensions */
+  SDL_Rect dstMusicButton, srcMusicButton;
+  SDL_Rect dstSoundButton, srcSoundButton;
   SDL_Color textcolor = {255, 255, 255}; /* sets textcolor as white */
   SDL_Rect dstPoints;
   char points[40];
@@ -1215,6 +1240,20 @@ int stageTwo() {
     dstBlocks.x = SCREEN_WIDTH + 30;
     dstBlocks.y = 230;
 
+    dstMusicButton.x = SCREEN_WIDTH + 30;
+    dstMusicButton.y = 300;
+    srcMusicButton.w = BUTTON_WIDTH;
+    srcMusicButton.h = BUTTON_HEIGHT;
+    srcMusicButton.y = 0;
+    srcMusicButton.x = gMusicCondition? 0 : BUTTON_WIDTH;
+
+    dstSoundButton.x = SCREEN_WIDTH + 60 + BUTTON_WIDTH;
+    dstSoundButton.y = 300;
+    srcSoundButton.w = BUTTON_WIDTH;
+    srcSoundButton.h = BUTTON_HEIGHT;
+    srcSoundButton.y = 0;
+    srcSoundButton.x = gSoundCondition? 0 : BUTTON_WIDTH;
+
     for (j = 0; j < COLUMNS; j++) {
       for (i = 0; i < ROWS; i++) {
         if (block[i][j].resistance > 0) drawBlock(block[i][j]);
@@ -1225,7 +1264,9 @@ int stageTwo() {
       SDL_BlitSurface(bar.image, &srcBar, gScreenSurface, &dstBar) < 0 ||
       SDL_BlitSurface(gInGameLife, NULL, gScreenSurface, &dstLifes) < 0 ||
       SDL_BlitSurface(gInGameBlocks, NULL, gScreenSurface, &dstBlocks) < 0 ||
-      SDL_BlitSurface(gInGamePoints, NULL, gScreenSurface, &dstPoints) < 0) {
+      SDL_BlitSurface(gInGamePoints, NULL, gScreenSurface, &dstPoints) < 0 ||
+      SDL_BlitSurface(gMusicButton, &srcMusicButton, gScreenSurface, &dstMusicButton) < 0 ||
+      SDL_BlitSurface(gSoundButton, &srcSoundButton, gScreenSurface, &dstSoundButton) < 0) {
         printf("SDL could not blit! SDL Error: %s\n", SDL_GetError());
         gQuit = true;
     }
@@ -1251,6 +1292,8 @@ int stageOne() {
   SDL_Rect srcBall, dstBall;
   SDL_Rect srcBar, dstBar;
   SDL_Rect dstInGameMenu; /* menu dimensions */
+  SDL_Rect dstMusicButton, srcMusicButton;
+  SDL_Rect dstSoundButton, srcSoundButton;
   SDL_Color textcolor = {255, 255, 255}; /* sets textcolor as white */
   SDL_Rect dstPoints;
   char points[40];
@@ -1402,6 +1445,20 @@ int stageOne() {
     dstBlocks.x = SCREEN_WIDTH + 30;
     dstBlocks.y = 230;
 
+    dstMusicButton.x = SCREEN_WIDTH + 30;
+    dstMusicButton.y = 300;
+    srcMusicButton.w = BUTTON_WIDTH;
+    srcMusicButton.h = BUTTON_HEIGHT;
+    srcMusicButton.y = 0;
+    srcMusicButton.x = gMusicCondition? 0 : BUTTON_WIDTH;
+
+    dstSoundButton.x = SCREEN_WIDTH + 60 + BUTTON_WIDTH;
+    dstSoundButton.y = 300;
+    srcSoundButton.w = BUTTON_WIDTH;
+    srcSoundButton.h = BUTTON_HEIGHT;
+    srcSoundButton.y = 0;
+    srcSoundButton.x = gSoundCondition? 0 : BUTTON_WIDTH;
+
     for (j = 0; j < COLUMNS; j++) {
       for (i = 0; i < ROWS; i++) {
         if (block[i][j].resistance > 0) drawBlock(block[i][j]);
@@ -1412,7 +1469,9 @@ int stageOne() {
       SDL_BlitSurface(bar.image, &srcBar, gScreenSurface, &dstBar) < 0 ||
       SDL_BlitSurface(gInGameLife, NULL, gScreenSurface, &dstLifes) < 0 ||
       SDL_BlitSurface(gInGameBlocks, NULL, gScreenSurface, &dstBlocks) < 0 ||
-      SDL_BlitSurface(gInGamePoints, NULL, gScreenSurface, &dstPoints) < 0) {
+      SDL_BlitSurface(gInGamePoints, NULL, gScreenSurface, &dstPoints) < 0 ||
+      SDL_BlitSurface(gMusicButton, &srcMusicButton, gScreenSurface, &dstMusicButton) < 0 ||
+      SDL_BlitSurface(gSoundButton, &srcSoundButton, gScreenSurface, &dstSoundButton) < 0) {
         printf("SDL could not blit! SDL Error: %s\n", SDL_GetError());
         gQuit = true;
     }

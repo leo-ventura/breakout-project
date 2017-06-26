@@ -27,7 +27,8 @@ SDL_Surface *gBarSurface = NULL;
 /* npcBar's surface */
 SDL_Surface *gNpcBarSurface = NULL;
 SDL_Surface *gSelectedOption = NULL;
-
+SDL_Surface *gMusicButton = NULL;
+SDL_Surface *gSoundButton = NULL;
 /*sounds */
 Mix_Chunk *gCollisionBarSound = NULL;
 Mix_Chunk *gCollisionBlockSound = NULL;

@@ -22,7 +22,8 @@
 #define YELLOW 3
 #define PURPLE 4
 #define VOLUME gVolume*5
-
+#define BUTTON_WIDTH 36 /* dimensions of Music and Sound button */
+#define BUTTON_HEIGHT 36
 
 typedef struct _OBJECT {
   double posX;

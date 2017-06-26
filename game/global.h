@@ -17,6 +17,8 @@ extern SDL_Surface *gBlockSurface;
 extern SDL_Surface *gBarSurface;
 extern SDL_Surface *gNpcBarSurface;
 extern SDL_Surface *gSelectedOption;
+extern SDL_Surface *gMusicButton;
+extern SDL_Surface *gSoundButton;
 extern Mix_Chunk *gCollisionBarSound;
 extern Mix_Chunk *gCollisionBlockSound;
 extern Mix_Chunk *gDestroyBlockSound;
