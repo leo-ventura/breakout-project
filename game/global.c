@@ -5,14 +5,13 @@
 #include "defs.h"
 
 int gQuit = false;
-int gPoints = 0;
-int gLifes = 3;
-int gSoundCondition = 1;
-int gMusicCondition = 1;
+int gPoints;
+int gLifes;
+int gSoundCondition = true;
+int gMusicCondition = true;
 int gVolume = 10;
-int gBarColor = 2;
-int gBallColor = 1;
-int gOver = false;
+int gBarColor = GREEN;
+int gBallColor = BLUE;
 /* The window we'll be rendering to */
 SDL_Window *gWindow = NULL;
 /* The surface contained by the window */
