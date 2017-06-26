@@ -457,7 +457,7 @@ SDL_Surface *loadGetNameRenderedText(TTF_Font *font, char *text, SDL_Color textc
   return optimizedTextSurface;
 }
 
-int loadTextMedia() {
+/*int loadTextMedia() {
   int success = true;
 
   gFont = TTF_OpenFont("../image_library/alagard_BitFont.ttf", 45);
@@ -466,7 +466,7 @@ int loadTextMedia() {
     success = false;
   }
   return success;
-}
+}*/
 
 int loadInGameMenu() {
   int success = true;
@@ -589,7 +589,7 @@ void closing() {
     SDL_Quit();
 }
 
-void turnSound(SDL_Event e){
+void turnSound(SDL_Event e) {
   switch (e.type) {
     case SDL_KEYDOWN:
       if (e.key.keysym.sym == SDLK_s) {
@@ -598,7 +598,7 @@ void turnSound(SDL_Event e){
   }
 }
 
-void turnMusic(SDL_Event e, int stage){
+void turnMusic(SDL_Event e, int stage) {
   switch (e.type) {
     case SDL_KEYDOWN:
       if (e.key.keysym.sym == SDLK_m) {
@@ -630,7 +630,7 @@ void turnMusic(SDL_Event e, int stage){
   }
 }
 
-void quitPressed(SDL_Event e){
+void quitPressed(SDL_Event e) {
   switch(e.type) {
       case SDL_QUIT:
         gQuit = true;
@@ -643,7 +643,7 @@ void quitPressed(SDL_Event e){
   }
 }
 
-void pause(OBJECT* ball, OBJECT* bar, OBJECT* bar2, SDL_Event e, int* pausedGame){
+void pause(OBJECT* ball, OBJECT* bar, OBJECT* bar2, SDL_Event e, int* pausedGame) {
   static OBJECT oldBall;
   static OBJECT oldBar;
   static OBJECT oldBar2;
@@ -731,6 +731,7 @@ void settings() {
   SDL_Rect dstBarColor;
   SDL_Rect dstBack;
   SDL_Rect dstSelectedOption;
+  TTF_Font *sfont = NULL;
   char volume[20];
   char music[20];
   char sound[20];
@@ -738,6 +739,10 @@ void settings() {
   char strBarColor[40];
   char strVolume[5];
 
+  sfont = TTF_OpenFont("../image_library/alagard_BitFont.ttf", 35);
+  if (!sfont) {
+    printf("Failed to load font! Error: %s\n", TTF_GetError());
+  }
 
   dstSettings.x = WINDOW_WIDTH/2 - 100;
   dstSettings.y = 50;
@@ -760,7 +765,7 @@ void settings() {
   dstBack.x = WINDOW_WIDTH/2 - 250;
   dstBack.y = 400;
 
-  while(!gQuit && returning == false) {
+  while(!gQuit && !returning) {
     while (SDL_PollEvent(&e) != 0) {
       switch(e.type) {
           case SDL_QUIT:
@@ -865,13 +870,13 @@ void settings() {
       sprintf(strVolume, "%d", gVolume);
       strcat(volume, strVolume);
 
-      gSettingsText = loadRenderedText("Settings", textcolor);
-      volumeSurface = loadRenderedText(volume, textcolor);
-      musicSurface = loadRenderedText(music, textcolor);
-      soundSurface = loadRenderedText(sound, textcolor);
-      ballColorSurface = loadRenderedText(strBallColor, textcolor);
-      barColorSurface = loadRenderedText(strBarColor, textcolor);
-      backSurface = loadRenderedText("Back", textcolor);
+      gSettingsText = loadGetNameRenderedText(sfont, "Settings", textcolor);
+      volumeSurface = loadGetNameRenderedText(sfont, volume, textcolor);
+      musicSurface = loadGetNameRenderedText(sfont, music, textcolor);
+      soundSurface = loadGetNameRenderedText(sfont, sound, textcolor);
+      ballColorSurface = loadGetNameRenderedText(sfont, strBallColor, textcolor);
+      barColorSurface = loadGetNameRenderedText(sfont, strBarColor, textcolor);
+      backSurface = loadGetNameRenderedText(sfont, "Back", textcolor);
 
       if (!gSettingsText || !volumeSurface || !musicSurface || !soundSurface || !ballColorSurface || !barColorSurface || !backSurface) {
         printf("Failed to render text! Error: %s\n", TTF_GetError());
@@ -904,7 +909,115 @@ void settings() {
 }
 
 void help() {
-  printf("Entrei em Help\n");
+  SDL_Surface *helpSurface1;
+  SDL_Surface *helpSurface12;
+  SDL_Surface *helpSurface2;
+  SDL_Surface *helpSurface22;
+  SDL_Surface *helpSurface3;
+  SDL_Surface *helpSurface4;
+  SDL_Surface *helpSurface5;
+  SDL_Surface *helpSurface6;
+  SDL_Surface *helpSurface7;
+  SDL_Surface *backSurface;
+  SDL_Color textcolor = {255, 255, 255};
+  SDL_Event e;
+  SDL_Rect dstBack;
+  SDL_Rect dstSelect;
+  int returning = false;
+  SDL_Rect dstHelp1, dstHelp12, dstHelp2, dstHelp22, dstHelp3, dstHelp4, dstHelp5, dstHelp6, dstHelp7;
+  TTF_Font *hfont;
+
+  hfont = TTF_OpenFont("../image_library/alagard_BitFont.ttf", 28);
+  if (!hfont) {
+    printf("Failed to load font! Error: %s\n", TTF_GetError());
+  }
+
+
+  helpSurface1 = loadGetNameRenderedText(hfont, "Breakout is an 'old, but gold' game. To play it, follow the", textcolor);
+  helpSurface12 = loadGetNameRenderedText(hfont, "instructions below:", textcolor);
+  helpSurface2 = loadGetNameRenderedText(hfont, "To move the bar, you have to use your keyboard's left", textcolor);
+  helpSurface22 = loadGetNameRenderedText(hfont, "or right arrow.", textcolor);
+  helpSurface3 = loadGetNameRenderedText(hfont, "To throw the ball, just press space.", textcolor);
+  helpSurface4 = loadGetNameRenderedText(hfont, "To turn on/off the music, press 'm' on your keyboard.", textcolor);
+  helpSurface5 = loadGetNameRenderedText(hfont, "To turn on/off the song, press 's' on your keyboard.", textcolor);
+  helpSurface6 = loadGetNameRenderedText(hfont, "To pause the game, press 'p'.", textcolor);
+  helpSurface7 = loadGetNameRenderedText(hfont, "And that's all you need to play Breakout! Hope you enjoy it!", textcolor);
+  backSurface = loadRenderedText("Back", textcolor);
+
+  dstHelp1.x = 70;
+  dstHelp1.y = 75;
+
+  dstHelp12.x = 70;
+  dstHelp12.y = 125;
+
+  dstHelp2.x = 70;
+  dstHelp2.y = 175;
+
+  dstHelp22.x = 70;
+  dstHelp22.y = 225;
+
+  dstHelp3.x = 70;
+  dstHelp3.y = 275;
+
+  dstHelp4.x = 70;
+  dstHelp4.y = 325;
+
+  dstHelp5.x = 70;
+  dstHelp5.y = 375;
+
+  dstHelp6.x = 70;
+  dstHelp6.y = 425;
+
+  dstHelp7.x = 70;
+  dstHelp7.y = 475;
+
+  dstBack.x = WINDOW_WIDTH/2 - 70;
+  dstBack.y = 540;
+
+  dstSelect.x = WINDOW_WIDTH/2 - 90 - SELECT_WIDTH;
+  dstSelect.y = 540;
+
+  while(!gQuit && !returning) {
+    while (SDL_PollEvent(&e) != 0) {
+      switch(e.type) {
+          case SDL_QUIT:
+            gQuit = true;
+            break;
+          case SDL_KEYDOWN:
+            if (e.key.keysym.sym == SDLK_ESCAPE) {
+                gQuit = true;
+            }
+            else if (e.key.keysym.sym == SDLK_RETURN) {
+              returning = true;
+            }
+      }
+    }
+    SDL_FillRect(gScreenSurface, NULL, SDL_MapRGB(gScreenSurface->format, 0x00, 0x00, 0x00));
+    if (SDL_BlitSurface(helpSurface1, NULL, gScreenSurface, &dstHelp1) < 0 ||
+        SDL_BlitSurface(helpSurface12, NULL, gScreenSurface, &dstHelp12) < 0 ||
+        SDL_BlitSurface(helpSurface2, NULL, gScreenSurface, &dstHelp2) < 0 ||
+        SDL_BlitSurface(helpSurface22, NULL, gScreenSurface, &dstHelp22) < 0 ||
+        SDL_BlitSurface(helpSurface3, NULL, gScreenSurface, &dstHelp3) < 0 ||
+        SDL_BlitSurface(helpSurface4, NULL, gScreenSurface, &dstHelp4) < 0 ||
+        SDL_BlitSurface(helpSurface5, NULL, gScreenSurface, &dstHelp5) < 0 ||
+        SDL_BlitSurface(helpSurface6, NULL, gScreenSurface, &dstHelp6) < 0 ||
+        SDL_BlitSurface(helpSurface7, NULL, gScreenSurface, &dstHelp7) < 0 ||
+        SDL_BlitSurface(backSurface, NULL, gScreenSurface, &dstBack) < 0 ||
+        SDL_BlitSurface(gSelectedOption, NULL, gScreenSurface, &dstSelect) < 0) {
+      printf("Error while blitting ranking surface!\n");
+      gQuit = true;
+    }
+    SDL_UpdateWindowSurface(gWindow);
+  }
+  SDL_FreeSurface(helpSurface1);
+  SDL_FreeSurface(helpSurface2);
+  SDL_FreeSurface(helpSurface3);
+  SDL_FreeSurface(helpSurface4);
+  SDL_FreeSurface(helpSurface5);
+  SDL_FreeSurface(helpSurface6);
+  SDL_FreeSurface(helpSurface7);
+  SDL_FreeSurface(backSurface);
+  TTF_CloseFont(hfont);
 }
 
 int stageThree() {
@@ -1500,6 +1613,7 @@ void ranking() {
   SDL_Surface* name[5];
   SDL_Surface* pontuation[5];
   SDL_Surface* backSurface;
+  SDL_Surface* rankingText = NULL;
   SDL_Rect dstName[5];
   SDL_Rect dstPoints[5];
   SDL_Rect dstBack;
@@ -1526,9 +1640,9 @@ void ranking() {
     dstPoints[i].y = 200 + 50*i;
   }
 
-  gRankingText = loadRenderedText("Ranking", textcolor);
+  rankingText = loadRenderedText("Ranking", textcolor);
   backSurface = loadRenderedText("Back", textcolor);
-  if (!gRankingText || !backSurface) {
+  if (!rankingText || !backSurface) {
     printf("Failed to render text! Error: %s\n", TTF_GetError());
     gQuit = true;
   }
@@ -1556,7 +1670,7 @@ void ranking() {
           }
       }
       SDL_FillRect(gScreenSurface, NULL, SDL_MapRGB(gScreenSurface->format, 0x00, 0x00, 0x00));
-      if (SDL_BlitSurface(gRankingText, NULL, gScreenSurface, &dstRanking) < 0 ||
+      if (SDL_BlitSurface(rankingText, NULL, gScreenSurface, &dstRanking) < 0 ||
           SDL_BlitSurface(backSurface, NULL, gScreenSurface, &dstBack) < 0 ||
           SDL_BlitSurface(gSelectedOption, NULL, gScreenSurface, &dstSelect) < 0) {
         printf("Error while blitting ranking surface!\n");
@@ -1576,6 +1690,7 @@ void ranking() {
     SDL_FreeSurface(pontuation[i]);
   }
   SDL_FreeSurface(backSurface);
+  SDL_FreeSurface(rankingText);
 }
 
 void menu() {
@@ -1587,9 +1702,14 @@ void menu() {
   dstMenu.x = 0;
   dstMenu.y = 0;
 
-  if (!loadTextMedia()) {
+  /*if (!loadTextMedia()) {
     printf("Could not load text media!\n");
     gQuit = true;
+  }*/
+
+  gFont = TTF_OpenFont("../image_library/alagard_BitFont.ttf", 28);
+  if (!gFont) {
+    printf("Failed to load font! Error: %s\n", TTF_GetError());
   }
 
   while (!gQuit) {
@@ -1607,7 +1727,7 @@ void menu() {
                     stageThree();
                   }
                 }
-                makeRank();
+                if (!gQuit) makeRank();
                 break;
               case 1:
                 ranking();

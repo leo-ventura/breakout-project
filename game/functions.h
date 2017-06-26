@@ -32,6 +32,8 @@ int stageThree();
 int loadTextMedia();
 int loadInGameMenu();
 int loadRenderedText(char *, SDL_Color);
+SDL_Surface *loadRenderedText(char *text, SDL_Color textcolor);
+SDL_Surface *loadGetNameRenderedText(TTF_Font *font, char *text, SDL_Color textcolor);
 void makeRank();
 void getPlayerName(char *jogador);
 
