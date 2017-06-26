@@ -22,7 +22,6 @@ void pause(OBJECT*, OBJECT*, OBJECT*, SDL_Event, int*);
 void quitPressed(SDL_Event);
 void turnSound(SDL_Event);
 void turnMusic(SDL_Event, int);
-void menu();
 void ranking();
 void settings();
 void help();
@@ -36,5 +35,7 @@ SDL_Surface *loadRenderedText(char *text, SDL_Color textcolor);
 SDL_Surface *loadGetNameRenderedText(TTF_Font *font, char *text, SDL_Color textcolor);
 void makeRank();
 void getPlayerName(char *jogador);
+void gameOver();
+void menu();
 
 #endif

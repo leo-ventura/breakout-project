@@ -60,7 +60,7 @@ BLOCK createBLOCK(int posX, int posY, SDL_Surface *image, int resistance, int co
   return b;
 }
 
-double distance(double x1, double y1, double x2, double y2){
+double distance(double x1, double y1, double x2, double y2) {
   double dist = sqrt ((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1));
   return dist;
 }
@@ -647,6 +647,25 @@ void pause(OBJECT* ball, OBJECT* bar, OBJECT* bar2, SDL_Event e, int* pausedGame
   static OBJECT oldBall;
   static OBJECT oldBar;
   static OBJECT oldBar2;
+  /*SDL_Surface *pauseSurface;
+  TTF_Font *font;
+  SDL_Rect dstPause;
+  SDL_Color textcolor = {0, 0, 0};
+
+  font = TTF_OpenFont("../image_library/alagard_BitFont.ttf", 55);
+  if (!font) {
+    printf("Failed to load font! Error: %s\n", TTF_GetError());
+  }
+
+  pauseSurface = loadGetNameRenderedText(font, "PAUSED", textcolor);
+
+  dstPause.x = SCREEN_WIDTH/2 - 50;
+  dstPause.y = WINDOW_HEIGHT/2 - 80;
+
+  if (SDL_BlitSurface(pauseSurface, NULL, gScreenSurface, &dstPause) < 0) {
+    printf("Error while blitting ranking surface!\n");
+    gQuit = true;
+  }*/
   switch (e.type) {
     case SDL_KEYDOWN:
       if (e.key.keysym.sym == SDLK_p){
@@ -1030,6 +1049,8 @@ int stageThree() {
   SDL_Rect dstMusicButton, srcMusicButton;
   SDL_Rect dstSoundButton, srcSoundButton;
   SDL_Color textcolor = {255, 255, 255}; /* sets textcolor as white */
+  SDL_Rect dstStage;
+  SDL_Surface *stageSurface;
   SDL_Rect dstPoints;
   char points[40];
   char npoints[10];
@@ -1044,6 +1065,7 @@ int stageThree() {
   SDL_Event e;
   int quantBlocks = 0;
   int pausedGame = false;
+  int bonus = false;
   OBJECT npcBar;
   SDL_Rect srcNpcBar, dstNpcBar;
   Mix_VolumeMusic(VOLUME);
@@ -1118,6 +1140,8 @@ int stageThree() {
     dstInGameMenu.w = WINDOW_WIDTH - SCREEN_WIDTH;
     SDL_FillRect(gScreenSurface, &dstInGameMenu, SDL_MapRGB(gScreenSurface->format, 0x00, 0x00, 0x00));
 
+    stageSurface = loadRenderedText("Stage: 3", textcolor);
+
     strcpy(points, "Points: ");
     sprintf(npoints, "%d", gPoints);
     strcat(points, npoints);
@@ -1142,8 +1166,11 @@ int stageThree() {
         collisionBlock(&block[i][j], &ball, &quantBlocks);
       }
     }
+
     loseLife(&ball, &bar, &gameStarted);
-    if (gLifes < 0) return 0;
+
+    if (gLifes <= 0) return 0;
+
     collisionBar(bar, &ball);
     collisionNpcBar(npcBar, &ball);
 
@@ -1170,24 +1197,27 @@ int stageThree() {
     dstNpcBar.x = npcBar.posX;
     dstNpcBar.y = npcBar.posY;
 
+    dstStage.x = SCREEN_WIDTH + 30;
+    dstStage.y = 30;
+
     dstPoints.x = SCREEN_WIDTH + 30;
-    dstPoints.y = 30;
+    dstPoints.y = 130;
 
     dstLifes.x = SCREEN_WIDTH + 30;
-    dstLifes.y = 130;
+    dstLifes.y = 230;
 
     dstBlocks.x = SCREEN_WIDTH + 30;
-    dstBlocks.y = 230;
+    dstBlocks.y = 330;
 
     dstMusicButton.x = SCREEN_WIDTH + 30;
-    dstMusicButton.y = 300;
+    dstMusicButton.y = 430;
     srcMusicButton.w = BUTTON_WIDTH;
     srcMusicButton.h = BUTTON_HEIGHT;
     srcMusicButton.y = 0;
     srcMusicButton.x = gMusicCondition? 0 : BUTTON_WIDTH;
 
     dstSoundButton.x = SCREEN_WIDTH + 60 + BUTTON_WIDTH;
-    dstSoundButton.y = 300;
+    dstSoundButton.y = 430;
     srcSoundButton.w = BUTTON_WIDTH;
     srcSoundButton.h = BUTTON_HEIGHT;
     srcSoundButton.y = 0;
@@ -1202,6 +1232,7 @@ int stageThree() {
     if(SDL_BlitSurface(ball.image, &srcBall, gScreenSurface, &dstBall) < 0 ||
         SDL_BlitSurface(bar.image, &srcBar, gScreenSurface, &dstBar) < 0 ||
         SDL_BlitSurface(npcBar.image, &srcNpcBar, gScreenSurface, &dstNpcBar) < 0 ||
+        SDL_BlitSurface(stageSurface, NULL, gScreenSurface, &dstStage) < 0 ||
         SDL_BlitSurface(gInGameLife, NULL, gScreenSurface, &dstLifes) < 0 ||
         SDL_BlitSurface(gInGameBlocks, NULL, gScreenSurface, &dstBlocks) < 0 ||
         SDL_BlitSurface(gInGamePoints, NULL, gScreenSurface, &dstPoints) < 0 ||
@@ -1220,8 +1251,14 @@ int stageThree() {
       gPoints += 1000;
       return 1;
     }
-    if (gPoints%10000 == 0 && gPoints != 0) gLifes++;
+    if (gPoints%9900 == 0) bonus = false;
+    if (gPoints%10000 == 0 && gPoints != 0 && !bonus) {
+      gLifes++;
+      bonus = true;
+    }
   }
+  SDL_FreeSurface(stageSurface);
+  return 1;
 }
 
 int stageTwo() {
@@ -1234,6 +1271,8 @@ int stageTwo() {
   SDL_Rect dstMusicButton, srcMusicButton;
   SDL_Rect dstSoundButton, srcSoundButton;
   SDL_Color textcolor = {255, 255, 255}; /* sets textcolor as white */
+  SDL_Rect dstStage;
+  SDL_Surface *stageSurface;
   SDL_Rect dstPoints;
   char points[40];
   char npoints[10];
@@ -1248,6 +1287,7 @@ int stageTwo() {
   SDL_Event e;
   int quantBlocks = 0;
   int pausedGame = false;
+  int bonus = false;
   Mix_VolumeMusic(VOLUME);
 
   if (!loadInGameMenu()) {
@@ -1301,6 +1341,8 @@ int stageTwo() {
     dstInGameMenu.w = WINDOW_WIDTH - SCREEN_WIDTH;
     SDL_FillRect(gScreenSurface, &dstInGameMenu, SDL_MapRGB(gScreenSurface->format, 0x00, 0x00, 0x00));
 
+    stageSurface = loadRenderedText("Stage: 2", textcolor);
+
     strcpy(points, "Points: ");
     sprintf(npoints, "%d", gPoints);
     strcat(points, npoints);
@@ -1327,7 +1369,8 @@ int stageTwo() {
 
     collisionBar(bar, &ball);
     loseLife(&ball, &bar, &gameStarted);
-    if (gLifes < 0) return 0;
+
+    if (gLifes <= 0) return 0;
 
     srcBall.x = 0;
     srcBall.y = 0;
@@ -1344,24 +1387,27 @@ int stageTwo() {
     dstBar.x = bar.posX;
     dstBar.y = bar.posY;
 
+    dstStage.x = SCREEN_WIDTH + 30;
+    dstStage.y = 30;
+
     dstPoints.x = SCREEN_WIDTH + 30;
-    dstPoints.y = 30;
+    dstPoints.y = 130;
 
     dstLifes.x = SCREEN_WIDTH + 30;
-    dstLifes.y = 130;
+    dstLifes.y = 230;
 
     dstBlocks.x = SCREEN_WIDTH + 30;
-    dstBlocks.y = 230;
+    dstBlocks.y = 330;
 
     dstMusicButton.x = SCREEN_WIDTH + 30;
-    dstMusicButton.y = 300;
+    dstMusicButton.y = 430;
     srcMusicButton.w = BUTTON_WIDTH;
     srcMusicButton.h = BUTTON_HEIGHT;
     srcMusicButton.y = 0;
     srcMusicButton.x = gMusicCondition? 0 : BUTTON_WIDTH;
 
     dstSoundButton.x = SCREEN_WIDTH + 60 + BUTTON_WIDTH;
-    dstSoundButton.y = 300;
+    dstSoundButton.y = 430;
     srcSoundButton.w = BUTTON_WIDTH;
     srcSoundButton.h = BUTTON_HEIGHT;
     srcSoundButton.y = 0;
@@ -1375,6 +1421,7 @@ int stageTwo() {
 
     if(SDL_BlitSurface(ball.image, &srcBall, gScreenSurface, &dstBall) < 0 ||
       SDL_BlitSurface(bar.image, &srcBar, gScreenSurface, &dstBar) < 0 ||
+      SDL_BlitSurface(stageSurface, NULL, gScreenSurface, &dstStage) < 0 ||
       SDL_BlitSurface(gInGameLife, NULL, gScreenSurface, &dstLifes) < 0 ||
       SDL_BlitSurface(gInGameBlocks, NULL, gScreenSurface, &dstBlocks) < 0 ||
       SDL_BlitSurface(gInGamePoints, NULL, gScreenSurface, &dstPoints) < 0 ||
@@ -1394,8 +1441,14 @@ int stageTwo() {
       /*Mix_HaltMusic();*/
       return 1;
     }
-    if (gPoints%10000 == 0 && gPoints != 0) gLifes++;
+    if (gPoints%9900 == 0) bonus = false;
+    if (gPoints%10000 == 0 && gPoints != 0 && !bonus) {
+      gLifes++;
+      bonus = true;
+    }
   }
+  SDL_FreeSurface(stageSurface);
+  return 1;
 }
 
 int stageOne() {
@@ -1408,6 +1461,8 @@ int stageOne() {
   SDL_Rect dstMusicButton, srcMusicButton;
   SDL_Rect dstSoundButton, srcSoundButton;
   SDL_Color textcolor = {255, 255, 255}; /* sets textcolor as white */
+  SDL_Rect dstStage;
+  SDL_Surface *stageSurface;
   SDL_Rect dstPoints;
   char points[40];
   char npoints[10];
@@ -1424,6 +1479,7 @@ int stageOne() {
   gLifes = 3;
   gPoints = 0;
   int pausedGame = false;
+  int bonus = false;
   Mix_VolumeMusic(VOLUME);
 
   if (!loadInGameMenu()) {
@@ -1471,6 +1527,8 @@ int stageOne() {
     dstInGameMenu.w = WINDOW_WIDTH - SCREEN_WIDTH;
     SDL_FillRect(gScreenSurface, &dstInGameMenu, SDL_MapRGB(gScreenSurface->format, 0x00, 0x00, 0x00));
 
+    stageSurface = loadRenderedText("Stage: 1", textcolor);
+
     strcpy(points, "Points: ");
     sprintf(npoints, "%d", gPoints);
     strcat(points, npoints);
@@ -1500,7 +1558,9 @@ int stageOne() {
     collisionBar(bar, &ball);
 
     loseLife(&ball, &bar, &gameStarted);
-    if (gLifes < 0) return 0;
+
+    if (gLifes <= 0) return 0;
+
     /* ball's source */
     switch (gBallColor) {
       case 0:
@@ -1549,24 +1609,27 @@ int stageOne() {
     dstBar.x = bar.posX;
     dstBar.y = bar.posY;
 
+    dstStage.x = SCREEN_WIDTH + 30;
+    dstStage.y = 30;
+
     dstPoints.x = SCREEN_WIDTH + 30;
-    dstPoints.y = 30;
+    dstPoints.y = 130;
 
     dstLifes.x = SCREEN_WIDTH + 30;
-    dstLifes.y = 130;
+    dstLifes.y = 230;
 
     dstBlocks.x = SCREEN_WIDTH + 30;
-    dstBlocks.y = 230;
+    dstBlocks.y = 330;
 
     dstMusicButton.x = SCREEN_WIDTH + 30;
-    dstMusicButton.y = 300;
+    dstMusicButton.y = 430;
     srcMusicButton.w = BUTTON_WIDTH;
     srcMusicButton.h = BUTTON_HEIGHT;
     srcMusicButton.y = 0;
     srcMusicButton.x = gMusicCondition? 0 : BUTTON_WIDTH;
 
     dstSoundButton.x = SCREEN_WIDTH + 60 + BUTTON_WIDTH;
-    dstSoundButton.y = 300;
+    dstSoundButton.y = 430;
     srcSoundButton.w = BUTTON_WIDTH;
     srcSoundButton.h = BUTTON_HEIGHT;
     srcSoundButton.y = 0;
@@ -1580,6 +1643,7 @@ int stageOne() {
 
     if(SDL_BlitSurface(ball.image, &srcBall, gScreenSurface, &dstBall) < 0 ||
       SDL_BlitSurface(bar.image, &srcBar, gScreenSurface, &dstBar) < 0 ||
+      SDL_BlitSurface(stageSurface, NULL, gScreenSurface, &dstStage) < 0 ||
       SDL_BlitSurface(gInGameLife, NULL, gScreenSurface, &dstLifes) < 0 ||
       SDL_BlitSurface(gInGameBlocks, NULL, gScreenSurface, &dstBlocks) < 0 ||
       SDL_BlitSurface(gInGamePoints, NULL, gScreenSurface, &dstPoints) < 0 ||
@@ -1599,186 +1663,14 @@ int stageOne() {
       Mix_HaltMusic();
       return 1;
     }
-    if (gPoints%10000 == 0 && gPoints != 0) gLifes++;
-  }
-}
-
-void ranking() {
-  SDL_Rect dstRanking;
-  SDL_Event e;
-  int returning = false;
-  SDL_Color textcolor = {255, 255, 255};
-  FILE* parq;
-  PLAYER records[5];
-  SDL_Surface* name[5];
-  SDL_Surface* pontuation[5];
-  SDL_Surface* backSurface;
-  SDL_Surface* rankingText = NULL;
-  SDL_Rect dstName[5];
-  SDL_Rect dstPoints[5];
-  SDL_Rect dstBack;
-  SDL_Rect dstSelect;
-  char nPoints[10];
-  int i;
-
-  parq = fopen("rankings.bin", "r");
-  if (!parq) {
-    printf("Failed to read ranking.\n");
-    gQuit = true;
-  }
-  fread(records, sizeof(PLAYER), 5, parq);
-  for (i = 0; i < 5; i++) {
-    name[i] = loadRenderedText(records[i].name, textcolor);
-    sprintf(nPoints, "%9d", records[i].points);
-    pontuation[i] = loadRenderedText(nPoints, textcolor);
-  }
-
-  for (i = 0; i < 5; i++) {
-    dstName[i].x = WINDOW_WIDTH/2 - 300;
-    dstName[i].y = 200 + 50*i;
-    dstPoints[i].x = WINDOW_WIDTH/2 + 200;
-    dstPoints[i].y = 200 + 50*i;
-  }
-
-  rankingText = loadRenderedText("Ranking", textcolor);
-  backSurface = loadRenderedText("Back", textcolor);
-  if (!rankingText || !backSurface) {
-    printf("Failed to render text! Error: %s\n", TTF_GetError());
-    gQuit = true;
-  }
-
-  dstRanking.x = WINDOW_WIDTH/2 - 100;
-  dstRanking.y = 100;
-  dstBack.x = WINDOW_WIDTH/2 - 70;
-  dstBack.y = 450;
-  dstSelect.x = WINDOW_WIDTH/2 - 90 - SELECT_WIDTH;
-  dstSelect.y = 450;
-
-  while(!gQuit && !returning) {
-    while (SDL_PollEvent(&e) != 0) {
-      switch(e.type) {
-          case SDL_QUIT:
-            gQuit = true;
-            break;
-          case SDL_KEYDOWN:
-            if (e.key.keysym.sym == SDLK_ESCAPE) {
-                gQuit = true;
-            }
-            else if (e.key.keysym.sym == SDLK_RETURN) {
-              returning = true;
-            }
-          }
-      }
-      SDL_FillRect(gScreenSurface, NULL, SDL_MapRGB(gScreenSurface->format, 0x00, 0x00, 0x00));
-      if (SDL_BlitSurface(rankingText, NULL, gScreenSurface, &dstRanking) < 0 ||
-          SDL_BlitSurface(backSurface, NULL, gScreenSurface, &dstBack) < 0 ||
-          SDL_BlitSurface(gSelectedOption, NULL, gScreenSurface, &dstSelect) < 0) {
-        printf("Error while blitting ranking surface!\n");
-        gQuit = true;
-      }
-      for (i = 0; i < 5; i++) {
-        if (SDL_BlitSurface(name[i], NULL, gScreenSurface, &dstName[i]) < 0 ||
-            SDL_BlitSurface(pontuation[i], NULL, gScreenSurface, &dstPoints[i]) < 0) {
-          printf("Error while blitting ranking surface!\n");
-          gQuit = true;
-        }
-      }
-      SDL_UpdateWindowSurface(gWindow);
-  }
-  for (i = 0; i < 5; i++) {
-    SDL_FreeSurface(name[i]);
-    SDL_FreeSurface(pontuation[i]);
-  }
-  SDL_FreeSurface(backSurface);
-  SDL_FreeSurface(rankingText);
-}
-
-void menu() {
-  unsigned int cursor = 0;
-  SDL_Event e;
-  SDL_Rect dstMenu;
-  SDL_Rect dstSelect;
-
-  dstMenu.x = 0;
-  dstMenu.y = 0;
-
-  /*if (!loadTextMedia()) {
-    printf("Could not load text media!\n");
-    gQuit = true;
-  }*/
-
-  gFont = TTF_OpenFont("../image_library/alagard_BitFont.ttf", 28);
-  if (!gFont) {
-    printf("Failed to load font! Error: %s\n", TTF_GetError());
-  }
-
-  while (!gQuit) {
-    while (SDL_PollEvent(&e) != 0) {
-      switch(e.type) {
-        case SDL_QUIT:
-          gQuit = true;
-          break;
-        case SDL_KEYDOWN:
-          if (e.key.keysym.sym == SDLK_RETURN) {
-            switch(cursor) {
-              case 0:
-                if (stageOne()) {
-                  if (stageTwo()) {
-                    stageThree();
-                  }
-                }
-                if (!gQuit) makeRank();
-                break;
-              case 1:
-                ranking();
-                break;
-              case 2:
-                settings();
-                break;
-              case 3:
-                help();
-                break;
-              case 4:
-                gQuit = true;
-                break;
-            }
-          }
-          else if (e.key.keysym.sym == SDLK_ESCAPE) {
-            gQuit = true;
-          }
-          else if (e.key.keysym.sym == SDLK_DOWN) {
-            cursor = (cursor + 1)%5; /* using %4 to make sure the cursor doesn't stop at the top/bottom */
-          }
-          else if (e.key.keysym.sym == SDLK_UP) {
-            cursor = (cursor + 4)%5;
-          }
-          break;
-      }
-      switch(cursor) {
-        case 0:
-          dstSelect.y = 235;
-          break;
-        case 1:
-          dstSelect.y = 305;
-          break;
-        case 2:
-          dstSelect.y = 375;
-          break;
-        case 3:
-          dstSelect.y = 445;
-          break;
-        case 4:
-          dstSelect.y = 515;
-          break;
-      }
-      dstSelect.x = 310;
-      if (SDL_BlitSurface(gMenuSurface, NULL, gScreenSurface, &dstMenu) < 0 ||
-          SDL_BlitSurface(gSelectedOption, NULL, gScreenSurface, &dstSelect) < 0) {
-        printf("Error while blitting ranking surface!\n");
-      }
-      SDL_UpdateWindowSurface(gWindow);
+    if (gPoints%9900 == 0) bonus = false;
+    if (gPoints%10000 == 0 && gPoints != 0 && !bonus) {
+      gLifes++;
+      bonus = true;
     }
   }
+  SDL_FreeSurface(stageSurface);
+  return 1;
 }
 
 void getPlayerName(char *jogador) {
@@ -1974,8 +1866,100 @@ void getPlayerName(char *jogador) {
     }
     SDL_UpdateWindowSurface(gWindow);
   }
+  SDL_FreeSurface(congrats);
   SDL_FreeSurface(getName);
   SDL_FreeSurface(writeName);
+  TTF_CloseFont(font);
+}
+
+void ranking() {
+  SDL_Rect dstRanking;
+  SDL_Event e;
+  int returning = false;
+  SDL_Color textcolor = {255, 255, 255};
+  FILE* parq;
+  PLAYER records[5];
+  SDL_Surface* name[5];
+  SDL_Surface* pontuation[5];
+  SDL_Surface* backSurface;
+  SDL_Surface* rankingText = NULL;
+  SDL_Rect dstName[5];
+  SDL_Rect dstPoints[5];
+  SDL_Rect dstBack;
+  SDL_Rect dstSelect;
+  char nPoints[10];
+  int i;
+
+  parq = fopen("rankings.bin", "r");
+  if (!parq) {
+    printf("Failed to read ranking.\n");
+    gQuit = true;
+  }
+  fread(records, sizeof(PLAYER), 5, parq);
+  for (i = 0; i < 5; i++) {
+    name[i] = loadRenderedText(records[i].name, textcolor);
+    sprintf(nPoints, "%9d", records[i].points);
+    pontuation[i] = loadRenderedText(nPoints, textcolor);
+  }
+
+  for (i = 0; i < 5; i++) {
+    dstName[i].x = WINDOW_WIDTH/2 - 300;
+    dstName[i].y = 200 + 50*i;
+    dstPoints[i].x = WINDOW_WIDTH/2 + 200;
+    dstPoints[i].y = 200 + 50*i;
+  }
+
+  rankingText = loadRenderedText("Ranking", textcolor);
+  backSurface = loadRenderedText("Back", textcolor);
+  if (!rankingText || !backSurface) {
+    printf("Failed to render text! Error: %s\n", TTF_GetError());
+    gQuit = true;
+  }
+
+  dstRanking.x = WINDOW_WIDTH/2 - 100;
+  dstRanking.y = 100;
+  dstBack.x = WINDOW_WIDTH/2 - 70;
+  dstBack.y = 450;
+  dstSelect.x = WINDOW_WIDTH/2 - 90 - SELECT_WIDTH;
+  dstSelect.y = 450;
+
+  while(!gQuit && !returning) {
+    while (SDL_PollEvent(&e) != 0) {
+      switch(e.type) {
+          case SDL_QUIT:
+            gQuit = true;
+            break;
+          case SDL_KEYDOWN:
+            if (e.key.keysym.sym == SDLK_ESCAPE) {
+                gQuit = true;
+            }
+            else if (e.key.keysym.sym == SDLK_RETURN) {
+              returning = true;
+            }
+          }
+      }
+      SDL_FillRect(gScreenSurface, NULL, SDL_MapRGB(gScreenSurface->format, 0x00, 0x00, 0x00));
+      if (SDL_BlitSurface(rankingText, NULL, gScreenSurface, &dstRanking) < 0 ||
+          SDL_BlitSurface(backSurface, NULL, gScreenSurface, &dstBack) < 0 ||
+          SDL_BlitSurface(gSelectedOption, NULL, gScreenSurface, &dstSelect) < 0) {
+        printf("Error while blitting ranking surface!\n");
+        gQuit = true;
+      }
+      for (i = 0; i < 5; i++) {
+        if (SDL_BlitSurface(name[i], NULL, gScreenSurface, &dstName[i]) < 0 ||
+            SDL_BlitSurface(pontuation[i], NULL, gScreenSurface, &dstPoints[i]) < 0) {
+          printf("Error while blitting ranking surface!\n");
+          gQuit = true;
+        }
+      }
+      SDL_UpdateWindowSurface(gWindow);
+  }
+  for (i = 0; i < 5; i++) {
+    SDL_FreeSurface(name[i]);
+    SDL_FreeSurface(pontuation[i]);
+  }
+  SDL_FreeSurface(backSurface);
+  SDL_FreeSurface(rankingText);
 }
 
 void makeRank() {
@@ -2000,6 +1984,9 @@ void makeRank() {
       getPlayerName(&*(jogador.name));
       recordistas[4] = jogador;
     }
+    else {
+      gOver = true;
+    }
     for (i = 4; i >= 0; i--) {
       if (recordistas[i].points > recordistas[i-1].points) {
         aux = recordistas[i];
@@ -2021,6 +2008,149 @@ void makeRank() {
     fwrite(recordistas, sizeof(PLAYER), 5, pRankFile);
     fclose(pRankFile);
   }
-  /*return;*/
-  ranking();
+  if (!gOver) ranking();
+}
+
+void gameOver() {
+  SDL_Surface *overSurface;
+  SDL_Surface *backSurface;
+  SDL_Rect dstOver;
+  TTF_Font *font;
+  SDL_Color textcolor = {255, 255, 255};
+  SDL_Event e;
+  SDL_Rect dstBack;
+  SDL_Rect dstSelect;
+
+  font = TTF_OpenFont("../image_library/alagard_BitFont.ttf", 45);
+  if (!font) {
+    printf("Failed to load font! Error: %s\n", TTF_GetError());
+  }
+  overSurface = loadGetNameRenderedText(font, "Game Over!", textcolor);
+  backSurface = loadGetNameRenderedText(font, "Back", textcolor);
+
+  dstOver.x = WINDOW_WIDTH/2 - 100;
+  dstOver.y = WINDOW_HEIGHT/2 - 150;
+
+  dstBack.x = WINDOW_WIDTH/2 - 70;
+  dstBack.y = 540;
+
+  dstSelect.x = WINDOW_WIDTH/2 - 90 - SELECT_WIDTH;
+  dstSelect.y = 540;
+
+  while(!gQuit) {
+    while (SDL_PollEvent(&e) != 0) {
+      switch(e.type) {
+          case SDL_QUIT:
+            gQuit = true;
+            break;
+          case SDL_KEYDOWN:
+            if (e.key.keysym.sym == SDLK_ESCAPE) {
+                gQuit = true;
+            }
+            else if (e.key.keysym.sym == SDLK_RETURN) {
+              menu();
+            }
+      }
+    }
+    SDL_FillRect(gScreenSurface, NULL, SDL_MapRGB(gScreenSurface->format, 0x00, 0x00, 0x00));
+    if (SDL_BlitSurface(overSurface, NULL, gScreenSurface, &dstOver) < 0 ||
+        SDL_BlitSurface(backSurface, NULL, gScreenSurface, &dstBack) < 0 ||
+        SDL_BlitSurface(gSelectedOption, NULL, gScreenSurface, &dstSelect) < 0) {
+      printf("Error while blitting ranking surface!\n");
+      gQuit = true;
+    }
+    SDL_UpdateWindowSurface(gWindow);
+  }
+  SDL_FreeSurface(overSurface);
+  SDL_FreeSurface(backSurface);
+  TTF_CloseFont(font);
+}
+
+void menu() {
+  unsigned int cursor = 0;
+  SDL_Event e;
+  SDL_Rect dstMenu;
+  SDL_Rect dstSelect;
+
+  dstMenu.x = 0;
+  dstMenu.y = 0;
+
+  /*if (!loadTextMedia()) {
+    printf("Could not load text media!\n");
+    gQuit = true;
+  }*/
+
+  gFont = TTF_OpenFont("../image_library/alagard_BitFont.ttf", 28);
+  if (!gFont) {
+    printf("Failed to load font! Error: %s\n", TTF_GetError());
+  }
+
+  while (!gQuit) {
+    while (SDL_PollEvent(&e) != 0) {
+      switch(e.type) {
+        case SDL_QUIT:
+          gQuit = true;
+          break;
+        case SDL_KEYDOWN:
+          if (e.key.keysym.sym == SDLK_RETURN) {
+            switch(cursor) {
+              case 0:
+                if (stageOne()) {
+                  if (stageTwo()) {
+                    stageThree();
+                  }
+                }
+                if (!gQuit) makeRank();
+                if (gOver) gameOver();
+                break;
+              case 1:
+                ranking();
+                break;
+              case 2:
+                settings();
+                break;
+              case 3:
+                help();
+                break;
+              case 4:
+                gQuit = true;
+                break;
+            }
+          }
+          else if (e.key.keysym.sym == SDLK_ESCAPE) {
+            gQuit = true;
+          }
+          else if (e.key.keysym.sym == SDLK_DOWN) {
+            cursor = (cursor + 1)%5; /* using %4 to make sure the cursor doesn't stop at the top/bottom */
+          }
+          else if (e.key.keysym.sym == SDLK_UP) {
+            cursor = (cursor + 4)%5;
+          }
+          break;
+      }
+      switch(cursor) {
+        case 0:
+          dstSelect.y = 235;
+          break;
+        case 1:
+          dstSelect.y = 305;
+          break;
+        case 2:
+          dstSelect.y = 375;
+          break;
+        case 3:
+          dstSelect.y = 445;
+          break;
+        case 4:
+          dstSelect.y = 515;
+          break;
+      }
+      dstSelect.x = 310;
+      if (SDL_BlitSurface(gMenuSurface, NULL, gScreenSurface, &dstMenu) < 0 ||
+          SDL_BlitSurface(gSelectedOption, NULL, gScreenSurface, &dstSelect) < 0) {
+        printf("Error while blitting ranking surface!\n");
+      }
+      SDL_UpdateWindowSurface(gWindow);
+    }
+  }
 }
