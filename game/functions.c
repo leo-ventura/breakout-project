@@ -10,6 +10,11 @@
 #include "global.h"
 #include "defs.h"
 
+unsigned time_left(void) {
+    unsigned now = SDL_GetTicks();
+    return (next_time <= now) ? 0 : next_time - now;
+}
+
 void drawBlock(BLOCK b) {
   SDL_Rect srcBlock;
   SDL_Rect dstBlock;
@@ -265,7 +270,7 @@ void collisionBar(OBJECT bar, OBJECT *ball){
         (ball->posX + BALL_WIDTH/2 < bar.posX + BAR_WIDTH)) ||
         (distance(ball->posX + BALL_WIDTH/2, ball->posY + BALL_HEIGHT/2, bar.posX, bar.posY) < BALL_WIDTH/2) ||
         (distance(ball->posX + BALL_WIDTH/2, ball->posY + BALL_HEIGHT/2, bar.posX + BAR_WIDTH, bar.posY) < BALL_WIDTH/2)
-        ){
+        ) {
           ball->stepY *= -1;
           ball->stepX = ((ball->posX + BALL_WIDTH/2) - (bar.posX + BAR_WIDTH/2))/40;
           ball->posY += ball->stepY;
@@ -275,7 +280,7 @@ void collisionBar(OBJECT bar, OBJECT *ball){
     else if (((ball->posX <= bar.posX + BAR_WIDTH && ball->posX > bar.posX) ||
          (ball->posX + BALL_WIDTH >= bar.posX && ball->posX + BALL_WIDTH < bar.posX + BAR_WIDTH )) &&
          (ball->posY + BALL_HEIGHT/2 > bar.posY) &&
-         (ball->posY + BALL_HEIGHT/2 < bar.posY + BAR_HEIGHT)){
+         (ball->posY + BALL_HEIGHT/2 < bar.posY + BAR_HEIGHT)) {
            ball->stepX = ((ball->posX + BALL_WIDTH/2) - (bar.posX + BAR_WIDTH/2))/40;
            ball->posY += ball->stepY;
            ball->posX += ball->stepX;
@@ -456,17 +461,6 @@ SDL_Surface *loadGetNameRenderedText(TTF_Font *font, char *text, SDL_Color textc
 
   return optimizedTextSurface;
 }
-
-/*int loadTextMedia() {
-  int success = true;
-
-  gFont = TTF_OpenFont("../image_library/alagard_BitFont.ttf", 45);
-  if (!gFont) {
-    printf("Failed to load font! Error: %s\n", TTF_GetError());
-    success = false;
-  }
-  return success;
-}*/
 
 int loadInGameMenu() {
   int success = true;
@@ -1128,10 +1122,6 @@ int stageThree() {
     }
   }
 
-  /*if (gMusicCondition) {
-    Mix_PlayMusic(gStageThreeMusic, -1);
-  };*/
-
   while (!gQuit){
     while(SDL_PollEvent(&e) != 0) {
       keyPressed(&ball, &bar, e, &gameStarted, pausedGame);
@@ -1295,8 +1285,6 @@ int stageThree() {
     /* Update the surface */
     SDL_UpdateWindowSurface(gWindow);
 
-    /* it'll be changed later */
-    SDL_Delay(2.5);
     if (quantBlocks == 0){
       gPoints += 1000;
       return 1;
@@ -1306,6 +1294,9 @@ int stageThree() {
       gLifes++;
       bonus = true;
     }
+
+    SDL_Delay(time_left());
+    next_time += TICK_INTERVAL;
   }
   SDL_FreeSurface(stageSurface);
   SDL_FreeSurface(pauseSurface);
@@ -1535,8 +1526,6 @@ int stageTwo() {
     /* Update the surface */
     SDL_UpdateWindowSurface(gWindow);
 
-    /* it'll be changed later */
-    SDL_Delay(2.5);
     if (quantBlocks == 0){
       gPoints += 1000;
       /*Mix_HaltMusic();*/
@@ -1547,6 +1536,9 @@ int stageTwo() {
       gLifes++;
       bonus = true;
     }
+
+    SDL_Delay(time_left());
+    next_time += TICK_INTERVAL;
   }
   SDL_FreeSurface(stageSurface);
   SDL_FreeSurface(pauseSurface);
@@ -1777,8 +1769,6 @@ int stageOne() {
     /* Update the surface */
     SDL_UpdateWindowSurface(gWindow);
 
-    /* it'll be changed later */
-    SDL_Delay(2.5);
     if (quantBlocks == 0) {
       gPoints += 1000;
       Mix_HaltMusic();
@@ -1789,6 +1779,9 @@ int stageOne() {
       gLifes++;
       bonus = true;
     }
+
+    SDL_Delay(time_left());
+    next_time += TICK_INTERVAL;
   }
   SDL_FreeSurface(stageSurface);
   SDL_FreeSurface(pauseSurface);
@@ -1847,6 +1840,7 @@ void getPlayerName(char *jogador) {
       while (SDL_PollEvent(&e) != 0) {
         switch(e.type) {
           case SDL_QUIT:
+            if (strlen(jogador) == 0) strcat(jogador, "UNKNOWN");
             gQuit = true;
             break;
           case SDL_KEYDOWN:
@@ -1855,6 +1849,7 @@ void getPlayerName(char *jogador) {
               returning = true;
             }
             else if (e.key.keysym.sym == SDLK_ESCAPE) {
+              if (strlen(jogador) == 0) strcat(jogador, "UNKNOWN");
               gQuit = true;
             }
             else if (e.key.keysym.sym == SDLK_SPACE) {
@@ -2012,7 +2007,7 @@ void ranking() {
   char nPoints[10];
   int i;
 
-  parq = fopen("rankings.bin", "r");
+  parq = fopen(".rankings.bin", "r");
   if (!parq) {
     printf("Failed to read ranking.\n");
     gQuit = true;
@@ -2093,7 +2088,7 @@ int makeRank() {
 
   jogador.points = gPoints;
 
-  pRankFile = fopen("rankings.bin", "r+");
+  pRankFile = fopen(".rankings.bin", "r+");
   if(!pRankFile) {
     perror("Could not open the rankings file! Error: ");
     gQuit = true;
@@ -2114,7 +2109,7 @@ int makeRank() {
         }
       }
       fclose(pRankFile);
-      pRankFile = fopen("rankings.bin", "wb");
+      pRankFile = fopen(".rankings.bin", "wb");
       if(!pRankFile){
         perror("Ranking file could not be replaced! Error: ");
         gQuit = true;
@@ -2127,8 +2122,8 @@ int makeRank() {
     }
     else return 0;
   }
+  return 1;
 }
-
 
 void menu() {
   unsigned int cursor = 0;

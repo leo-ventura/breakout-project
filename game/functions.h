@@ -2,6 +2,7 @@
 #define FUNCTIONS_H
 
 /*Starts up SDL and creates window*/
+unsigned time_left();
 int init();
 int loadMedia();
 void closing();
@@ -28,7 +29,6 @@ void help();
 int stageOne();
 int stageTwo();
 int stageThree();
-int loadTextMedia();
 int loadInGameMenu();
 SDL_Surface *loadRenderedText(char *text, SDL_Color textcolor);
 SDL_Surface *loadGetNameRenderedText(TTF_Font *font, char *text, SDL_Color textcolor);
