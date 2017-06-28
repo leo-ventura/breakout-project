@@ -201,23 +201,32 @@ void collisionNpcBar(OBJECT bar, OBJECT *ball) {
   /* up and down */
   if (((ball->posY == bar.posY + BAR_HEIGHT) ||
       (ball->posY + BALL_HEIGHT == bar.posY)) &&
-      (ball->posX + BALL_WIDTH/2 > bar.posX) &&
-      (ball->posX + BALL_WIDTH/2 < bar.posX + BAR_WIDTH)){
+      (ball->posX + BALL_WIDTH/2 >= bar.posX) &&
+      (ball->posX + BALL_WIDTH/2 <= bar.posX + BAR_WIDTH)){
         ball->stepY *= -1;
         ball->posY += ball->stepY;
   }
-  /* right and left */
-  else if (((ball->posX <= bar.posX + BAR_WIDTH && ball->posX > bar.posX) ||
-       (ball->posX + BALL_WIDTH >= bar.posX && ball->posX + BALL_WIDTH < bar.posX + BAR_WIDTH )) &&
-       (ball->posY + BALL_HEIGHT/2 > bar.posY) &&
-       (ball->posY + BALL_HEIGHT/2 < bar.posY + BAR_HEIGHT)){
-          ball->stepX *= -1;
+  /* right */
+  else if ((ball->posX <= bar.posX + BAR_WIDTH && ball->posX > bar.posX && ball->stepX < bar.stepX) &&
+       (ball->posY + BALL_HEIGHT/2 >= bar.posY) &&
+       (ball->posY + BALL_HEIGHT/2 <= bar.posY + BAR_HEIGHT)){
+          ball->stepX = abs(ball->stepX)>NPCBAR_SPEED? ball->stepX*-1 : NPCBAR_SPEED + 0.1;
           ball->posX += ball->stepX;
+          puts("colisao da direita");
+  }
+
+  /* left */
+  else if ((ball->posX + BALL_WIDTH >= bar.posX && ball->posX + BALL_WIDTH < bar.posX + BAR_WIDTH && ball->stepX > bar.stepX ) &&
+       (ball->posY + BALL_HEIGHT/2 >= bar.posY) &&
+       (ball->posY + BALL_HEIGHT/2 <= bar.posY + BAR_HEIGHT)){
+          ball->stepX = abs(ball->stepX)>NPCBAR_SPEED? ball->stepX*-1 : (NPCBAR_SPEED + 0.1)*-1;
+          ball->posX += ball->stepX;
+          puts("colisao da esquerda");
   }
   /* upper left */
   else if (distance(ball->posX + BALL_WIDTH/2, ball->posY + BALL_HEIGHT/2, bar.posX, bar.posY) < BALL_WIDTH/2){
-    if (ball->stepX > 0) {
-      ball->stepX *= -1;
+    if (ball->stepX > bar.stepX) {
+      ball->stepX = abs(ball->stepX)>NPCBAR_SPEED? ball->stepX*-1 : (NPCBAR_SPEED + 0.1)*-1;
     }
     if (ball->stepY > 0) {
       ball->stepY *= -1;
@@ -228,8 +237,8 @@ void collisionNpcBar(OBJECT bar, OBJECT *ball) {
 
   /* lower left */
   else if (distance(ball->posX + BALL_WIDTH/2, ball->posY + BALL_HEIGHT/2, bar.posX, bar.posY + BAR_HEIGHT) < BALL_WIDTH/2){
-    if (ball->stepX > 0) {
-      ball->stepX *= -1;
+    if (ball->stepX > bar.stepX) {
+      ball->stepX = abs(ball->stepX)>NPCBAR_SPEED? ball->stepX*-1 : (NPCBAR_SPEED + 0.1)*-1;
     }
     if (ball->stepY < 0) {
       ball->stepY *= -1;
@@ -240,8 +249,8 @@ void collisionNpcBar(OBJECT bar, OBJECT *ball) {
 
   /* lower right */
   else if (distance(ball->posX + BALL_WIDTH/2, ball->posY + BALL_HEIGHT/2, bar.posX + BAR_WIDTH, bar.posY + BAR_HEIGHT) < BALL_WIDTH/2){
-    if (ball->stepX < 0) {
-      ball->stepX *= -1;
+    if (ball->stepX < bar.stepX) {
+      ball->stepX = abs(ball->stepX)>NPCBAR_SPEED? ball->stepX*-1 : NPCBAR_SPEED + 0.1;
     }
     if (ball->stepY < 0) {
       ball->stepY *= -1;
@@ -252,8 +261,8 @@ void collisionNpcBar(OBJECT bar, OBJECT *ball) {
 
   /* upper right */
   else if (distance(ball->posX + BALL_WIDTH/2, ball->posY + BALL_HEIGHT/2, bar.posX + BAR_WIDTH, bar.posY) < BALL_WIDTH/2){
-    if (ball->stepX < 0) {
-      ball->stepX *= -1;
+    if (ball->stepX < bar.stepX) {
+      ball->stepX = abs(ball->stepX)>NPCBAR_SPEED? ball->stepX*-1 : NPCBAR_SPEED + 0.1;
     }
     if (ball->stepY > 0) {
       ball->stepY *= -1;
@@ -1086,7 +1095,7 @@ int stageThree() {
   ball = createOBJECT(SCREEN_WIDTH/2 - BALL_WIDTH/2, SCREEN_HEIGHT - 100 - BALL_HEIGHT, 0, 0, gBallSurface);
   bar = createOBJECT(SCREEN_WIDTH/2 - BAR_WIDTH/2, SCREEN_HEIGHT - 100, 0, 0, gBarSurface);
   /* create a non-player Bar */
-  npcBar = createOBJECT(SCREEN_WIDTH/2 - BAR_WIDTH/2, SCREEN_HEIGHT - 180, 1.3, 0, gNpcBarSurface);
+  npcBar = createOBJECT(SCREEN_WIDTH/2 - BAR_WIDTH/2, SCREEN_HEIGHT - 180, NPCBAR_SPEED, 0, gNpcBarSurface);
 
   for (i = 0; i < ROWS ; i++) {
     for (j = 0; j < COLUMNS ; j++) {

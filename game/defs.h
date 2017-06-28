@@ -1,6 +1,7 @@
 #ifndef DEFS_H
 #define DEFS_H
 
+#define TICK_INTERVAL 5
 #define ROWS 10
 #define COLUMNS 7
 #define true 1
@@ -11,6 +12,7 @@
 #define BLOCK_HEIGHT 40
 #define BAR_WIDTH 120
 #define BAR_HEIGHT 20
+#define NPCBAR_SPEED 1.3
 #define SCREEN_WIDTH 700
 #define SCREEN_HEIGHT 600
 #define WINDOW_WIDTH 940

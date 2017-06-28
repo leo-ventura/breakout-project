@@ -4,7 +4,6 @@
 #include <SDL2/SDL_ttf.h>
 #include "defs.h"
 
-unsigned int TICK_INTERVAL = 5;
 unsigned int next_time;
 int gQuit = false;
 int gPoints;

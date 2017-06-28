@@ -1,7 +1,6 @@
 #ifndef GLOBAL_H
 #define GLOBAL_H
 
-extern const unsigned int TICK_INTERVAL;
 extern unsigned int next_time;
 extern int gQuit;
 extern int gPoints;
