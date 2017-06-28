@@ -9,11 +9,8 @@
 #include <math.h>
 #include "global.h"
 #include "defs.h"
+#include "functions.h"
 
-unsigned time_left(void) {
-    unsigned now = SDL_GetTicks();
-    return (next_time <= now) ? 0 : next_time - now;
-}
 
 void drawBlock(BLOCK b) {
   SDL_Rect srcBlock;
@@ -416,12 +413,14 @@ SDL_Surface* loadSurface( char *path ) {
   SDL_Surface* loadedSurface = IMG_Load(path);
   if(loadedSurface == NULL) {
     printf("Unable to load image %s! SDL_image Error: %s\n", path, IMG_GetError());
+    gQuit = true;
   }
   else {
     /*Convert surface to screen format*/
     optimizedSurface = SDL_ConvertSurface( loadedSurface, gScreenSurface->format, 0);
     if(optimizedSurface == NULL) {
       printf("Unable to optimize image %s! SDL Error: %s\n", path, SDL_GetError());
+      gQuit = true;
     }
 
     /*Get rid of old loaded surface*/
@@ -636,25 +635,6 @@ void pause(OBJECT* ball, OBJECT* bar, OBJECT* bar2, SDL_Event e, int* pausedGame
   static OBJECT oldBall;
   static OBJECT oldBar;
   static OBJECT oldBar2;
-  /*SDL_Surface *pauseSurface;
-  TTF_Font *font;
-  SDL_Rect dstPause;
-  SDL_Color textcolor = {0, 0, 0};
-
-  font = TTF_OpenFont("../image_library/alagard_BitFont.ttf", 55);
-  if (!font) {
-    printf("Failed to load font! Error: %s\n", TTF_GetError());
-  }
-
-  pauseSurface = loadGetNameRenderedText(font, "PAUSED", textcolor);
-
-  dstPause.x = SCREEN_WIDTH/2 - 50;
-  dstPause.y = WINDOW_HEIGHT/2 - 80;
-
-  if (SDL_BlitSurface(pauseSurface, NULL, gScreenSurface, &dstPause) < 0) {
-    printf("Error while blitting ranking surface!\n");
-    gQuit = true;
-  }*/
   switch (e.type) {
     case SDL_KEYDOWN:
       if (e.key.keysym.sym == SDLK_p){
@@ -752,6 +732,7 @@ void settings() {
   sfont = TTF_OpenFont("../image_library/alagard_BitFont.ttf", 35);
   if (!sfont) {
     printf("Failed to load font! Error: %s\n", TTF_GetError());
+    gQuit = true;
   }
 
   dstSettings.x = WINDOW_WIDTH/2 - 100;
@@ -809,6 +790,7 @@ void settings() {
                   Mix_PauseMusic();
                   Mix_VolumeMusic(VOLUME);
                   if (gMusicCondition) Mix_ResumeMusic();
+                  SDL_Delay(5);
                   returning = true;
                   break;
               }
@@ -924,9 +906,9 @@ void settings() {
           SDL_BlitSurface(backSurface, NULL, gScreenSurface, &dstBack) < 0 ||
           SDL_BlitSurface(gSelectedOption, NULL, gScreenSurface, &dstSelectedOption) < 0) {
         printf("Error while blitting ranking surface!\n");
+        gQuit = true;
       }
-      SDL_Delay(time_left());
-      next_time += TICK_INTERVAL;
+      SDL_Delay(SDL_DELAY);
       SDL_UpdateWindowSurface(gWindow);
     }
   }
@@ -963,6 +945,7 @@ void help() {
   hfont = TTF_OpenFont("../image_library/alagard_BitFont.ttf", 28);
   if (!hfont) {
     printf("Failed to load font! Error: %s\n", TTF_GetError());
+    gQuit = true;
   }
 
 
@@ -1040,8 +1023,7 @@ void help() {
       printf("Error while blitting ranking surface!\n");
       gQuit = true;
     }
-    SDL_Delay(time_left());
-    next_time += TICK_INTERVAL;
+    SDL_Delay(SDL_DELAY);
     SDL_UpdateWindowSurface(gWindow);
   }
   SDL_FreeSurface(helpSurface1);
@@ -1094,10 +1076,12 @@ int stageThree() {
 
   if (!loadInGameMenu()) {
     printf("Unable to load text media!\n");
+    gQuit = true;
   }
   font = TTF_OpenFont("../image_library/alagard_BitFont.ttf", 55);
   if (!font) {
     printf("Failed to load font! Error: %s\n", TTF_GetError());
+    gQuit = true;
   }
 
   /*create NULL blocks */
@@ -1318,9 +1302,6 @@ int stageThree() {
       }
     }
 
-    /* Update the surface */
-    SDL_UpdateWindowSurface(gWindow);
-
     if (quantBlocks == 0){
       gPoints += 1000;
       /*Mix_HaltMusic();*/
@@ -1337,8 +1318,9 @@ int stageThree() {
       bonus = true;
     }
 
-    SDL_Delay(time_left());
-    next_time += TICK_INTERVAL;
+    SDL_Delay(SDL_DELAY);
+    /* Update the surface */
+    SDL_UpdateWindowSurface(gWindow);
   }
   /*Mix_HaltMusic();*/
   SDL_FreeSurface(stageSurface);
@@ -1386,10 +1368,12 @@ int stageTwo() {
 
   if (!loadInGameMenu()) {
     printf("Unable to load text media!\n");
+    gQuit = true;
   }
   font = TTF_OpenFont("../image_library/alagard_BitFont.ttf", 55);
   if (!font) {
     printf("Failed to load font! Error: %s\n", TTF_GetError());
+    gQuit = true;
   }
 
   /*create NULL blocks */
@@ -1579,9 +1563,6 @@ int stageTwo() {
       }
     }
 
-    /* Update the surface */
-    SDL_UpdateWindowSurface(gWindow);
-
     if (quantBlocks == 0){
       gPoints += 1000;
       /*Mix_HaltMusic();*/
@@ -1598,8 +1579,9 @@ int stageTwo() {
       bonus = true;
     }
 
-    SDL_Delay(time_left());
-    next_time += TICK_INTERVAL;
+    SDL_Delay(SDL_DELAY);
+    /* Update the surface */
+    SDL_UpdateWindowSurface(gWindow);
   }
   /*Mix_HaltMusic();*/
   SDL_FreeSurface(stageSurface);
@@ -1649,11 +1631,13 @@ int stageOne() {
 
   if (!loadInGameMenu()) {
     printf("Unable to load text media!\n");
+    gQuit = true;
   }
 
   font = TTF_OpenFont("../image_library/alagard_BitFont.ttf", 55);
   if (!font) {
     printf("Failed to load font! Error: %s\n", TTF_GetError());
+    gQuit = true;
   }
 
   /*create NULL blocks */
@@ -1841,9 +1825,6 @@ int stageOne() {
       }
     }
 
-    /* Update the surface */
-    SDL_UpdateWindowSurface(gWindow);
-
     if (quantBlocks == 0) {
       gPoints += 1000;
       Mix_HaltMusic();
@@ -1860,8 +1841,9 @@ int stageOne() {
       bonus = true;
     }
 
-    SDL_Delay(time_left());
-    next_time += TICK_INTERVAL;
+    SDL_Delay(SDL_DELAY);
+    /* Update the surface */
+    SDL_UpdateWindowSurface(gWindow);
   }
   Mix_HaltMusic();
   SDL_FreeSurface(stageSurface);
@@ -1904,6 +1886,7 @@ void getPlayerName(char *jogador) {
   if (SDL_BlitSurface(congrats, NULL, gScreenSurface, &dstCongrats) < 0 ||
       SDL_BlitSurface(getName, NULL, gScreenSurface, &dstGetName) < 0) {
     printf("Error while blitting the surface\n");
+    gQuit = true;
   }
 
   gFont = TTF_OpenFont("../image_library/alagard_BitFont.ttf", 28);
@@ -2035,6 +2018,7 @@ void getPlayerName(char *jogador) {
           writeName = loadRenderedText(jogador, textcolor);
           if (SDL_BlitSurface(writeName, NULL, gScreenSurface, &dstwriteName) < 0) {
             printf("Error while blitting the surface\n");
+            gQuit = true;
           }
         }
       }
@@ -2061,12 +2045,12 @@ void getPlayerName(char *jogador) {
             writeName = loadRenderedText(jogador, textcolor);
             if (SDL_BlitSurface(writeName, NULL, gScreenSurface, &dstwriteName) < 0) {
               printf("Error while blitting the surface\n");
+              gQuit = true;
             }
         }
       }
     }
-    SDL_Delay(time_left());
-    next_time += TICK_INTERVAL;
+    SDL_Delay(SDL_DELAY);
     SDL_UpdateWindowSurface(gWindow);
   }
   SDL_FreeSurface(congrats);
@@ -2159,8 +2143,6 @@ void ranking() {
           gQuit = true;
         }
       }
-      SDL_Delay(time_left());
-      next_time += TICK_INTERVAL;
       SDL_UpdateWindowSurface(gWindow);
   }
   for (i = 0; i < 5; i++) {
@@ -2230,6 +2212,7 @@ void menu() {
   gFont = TTF_OpenFont("../image_library/alagard_BitFont.ttf", 28);
   if (!gFont) {
     printf("Failed to load font! Error: %s\n", TTF_GetError());
+    gQuit = true;
   }
 
   if (gMusicCondition) Mix_PlayMusic(gMenuMusic, -1);
@@ -2303,9 +2286,8 @@ void menu() {
       if (SDL_BlitSurface(gMenuSurface, NULL, gScreenSurface, &dstMenu) < 0 ||
           SDL_BlitSurface(gSelectedOption, NULL, gScreenSurface, &dstSelect) < 0) {
         printf("Error while blitting ranking surface!\n");
+        gQuit = true;
       }
-      SDL_Delay(time_left());
-      next_time += TICK_INTERVAL;
       SDL_UpdateWindowSurface(gWindow);
     }
   }
@@ -2324,6 +2306,7 @@ void gameOver() {
   font = TTF_OpenFont("../image_library/alagard_BitFont.ttf", 45);
   if (!font) {
     printf("Failed to load font! Error: %s\n", TTF_GetError());
+    gQuit = true;
   }
   overSurface = loadGetNameRenderedText(font, "Game Over!", textcolor);
   backSurface = loadGetNameRenderedText(font, "Back", textcolor);
@@ -2362,8 +2345,6 @@ void gameOver() {
       printf("Error while blitting ranking surface!\n");
       gQuit = true;
     }
-    SDL_Delay(time_left());
-    next_time += TICK_INTERVAL;
     SDL_UpdateWindowSurface(gWindow);
   }
   SDL_FreeSurface(overSurface);

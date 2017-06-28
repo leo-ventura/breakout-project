@@ -1,7 +1,7 @@
 #ifndef DEFS_H
 #define DEFS_H
 
-#define TICK_INTERVAL 5
+#define SDL_DELAY 2.5
 #define ROWS 10
 #define COLUMNS 7
 #define true 1

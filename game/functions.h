@@ -2,7 +2,6 @@
 #define FUNCTIONS_H
 
 /*Starts up SDL and creates window*/
-unsigned time_left();
 int init();
 int loadMedia();
 void closing();
@@ -11,7 +10,7 @@ OBJECT createOBJECT(double, double, double, double, SDL_Surface*);
 void moveOBJECT(OBJECT*);
 void moveNPCBAR(OBJECT*);
 void moveBAR(OBJECT*, OBJECT*, int );
-BLOCK createBLOCK(int, int, int, int, SDL_Surface*);
+BLOCK createBLOCK(int, int, SDL_Surface *, int, int);
 void drawBlock(BLOCK);
 void collisionBlock(BLOCK*, OBJECT*, int*);
 void collisionNpcBar(OBJECT, OBJECT*);
