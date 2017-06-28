@@ -2087,6 +2087,10 @@ void ranking() {
   char nPoints[10];
   int i;
 
+  if (gMusicCondition){
+      if (!Mix_PlayingMusic()) Mix_PlayMusic(gMenuMusic, -1);
+  }
+
   parq = fopen(".rankings.bin", "r");
   if (!parq) {
     printf("Failed to read ranking.\n");
