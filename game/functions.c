@@ -496,7 +496,7 @@ int loadMedia() {
     gBlockSurface = loadSurface("../image_library/block.png");
 
     /* non-player bar */
-    gNpcBarSurface = loadSurface("../image_library/bar.png");
+    gNpcBarSurface = loadSurface("../image_library/NPCbar.png");
 
     gSelectedOption = loadSurface("../image_library/select.png");
 
@@ -1354,7 +1354,8 @@ int stageTwo() {
   SDL_Surface *inGameLife;
   SDL_Surface *inGameBlocks;
   Mix_VolumeMusic(VOLUME);
-
+  return 1;
+  
   if (!loadInGameMenu()) {
     printf("Unable to load text media!\n");
   }
@@ -1615,7 +1616,7 @@ int stageOne() {
   SDL_Surface *inGamePoints;
   SDL_Surface *inGameLife;
   SDL_Surface *inGameBlocks;
-
+  return 1;
 
   if (!loadInGameMenu()) {
     printf("Unable to load text media!\n");
