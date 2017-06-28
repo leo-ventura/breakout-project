@@ -514,13 +514,12 @@ int loadMedia() {
     gCollisionBarSound = Mix_LoadWAV("../sound_library/collisionBar.wav");
     gCollisionBlockSound = Mix_LoadWAV("../sound_library/collisionBlock.wav");
     gDestroyBlockSound = Mix_LoadWAV("../sound_library/destroyBlock.wav");
-    gStageOneMusic = Mix_LoadMUS("../sound_library/music.mod");
-    /*
+    gMenuMusic = Mix_LoadMUS("../sound_library/menuMusic.mp3");
+    gStageOneMusic = Mix_LoadMUS("../sound_library/stageOneMusic.mp3");
     gStageTwoMusic = Mix_LoadMUS("../sound_library/stageTwoMusic.mp3");
     gStageThreeMusic = Mix_LoadMUS("../sound_library/stageThreeMusic.mp3");
-    */
 
-    if (!gCollisionBlockSound || !gCollisionBarSound || !gDestroyBlockSound || !gStageOneMusic /*|| !gStageTwoMusic|| !gStageTwoMusic*/) {
+    if (!gCollisionBlockSound || !gCollisionBarSound || !gDestroyBlockSound || !gMenuMusic || !gStageOneMusic || !gStageTwoMusic|| !gStageThreeMusic) {
       printf("Failed to load sounds! SDL Error: %s\n", SDL_GetError());
       success = false;
     }
@@ -573,10 +572,8 @@ void closing() {
     Mix_FreeChunk(gCollisionBlockSound);
     Mix_FreeChunk(gDestroyBlockSound);
     Mix_FreeMusic(gStageOneMusic);
-    /*
-    Mix_FreeMusic(gStageOneMusic);
-    Mix_FreeMusic(gStageOneMusic);
-    */
+    Mix_FreeMusic(gStageTwoMusic);
+    Mix_FreeMusic(gStageThreeMusic);
     /*Quit SDL subsystems*/
     TTF_Quit();
     IMG_Quit();
@@ -605,14 +602,12 @@ void turnMusic(SDL_Event e, int stage) {
               case 1:
                 Mix_PlayMusic(gStageOneMusic, -1);
                 break;
-              /*
               case 2:
                 Mix_PlayMusic(gStageTwoMusic, -1);
                 break;
               case 3:
                 Mix_PlayMusic(gStageThreeMusic, -1);
                 break;
-              */
             }
           }
         }
@@ -751,6 +746,8 @@ void settings() {
   char strBallColor[40];
   char strBarColor[40];
   char strVolume[5];
+  Mix_VolumeMusic(VOLUME);
+
 
   sfont = TTF_OpenFont("../image_library/alagard_BitFont.ttf", 35);
   if (!sfont) {
@@ -798,11 +795,20 @@ void settings() {
               switch(cursor) {
                 case 1:
                   gMusicCondition = !gMusicCondition;
+                  if (gMusicCondition){
+                      Mix_PlayMusic(gMenuMusic, -1);
+                  }
+                  else {
+                    Mix_PauseMusic();
+                  }
                   break;
                 case 2:
                   gSoundCondition = !gSoundCondition;
                   break;
                 case 5:
+                  Mix_PauseMusic();
+                  Mix_VolumeMusic(VOLUME);
+                  if (gMusicCondition) Mix_ResumeMusic();
                   returning = true;
                   break;
               }
@@ -814,6 +820,12 @@ void settings() {
                   break;
                 case 1:
                   gMusicCondition = !gMusicCondition;
+                  if (gMusicCondition){
+                      Mix_PlayMusic(gMenuMusic, -1);
+                  }
+                  else {
+                    Mix_PauseMusic();
+                  }
                   break;
                 case 2:
                   gSoundCondition = !gSoundCondition;
@@ -833,6 +845,12 @@ void settings() {
                   break;
                 case 1:
                   gMusicCondition = !gMusicCondition;
+                  if (gMusicCondition){
+                      Mix_PlayMusic(gMenuMusic, -1);
+                  }
+                  else {
+                    Mix_PauseMusic();
+                  }
                   break;
                 case 2:
                   gSoundCondition = !gSoundCondition;
@@ -1125,6 +1143,10 @@ int stageThree() {
     }
   }
 
+  if (gMusicCondition) {
+    Mix_PlayMusic(gStageThreeMusic, -1);
+  };
+
   while (!gQuit){
     while(SDL_PollEvent(&e) != 0) {
       keyPressed(&ball, &bar, e, &gameStarted, pausedGame);
@@ -1171,6 +1193,7 @@ int stageThree() {
     loseLife(&ball, &bar, &gameStarted);
 
     if (gLifes <= 0) {
+      /*Mix_HaltMusic();*/
       SDL_FreeSurface(stageSurface);
       SDL_FreeSurface(pauseSurface);
       SDL_FreeSurface(inGameLife);
@@ -1296,6 +1319,7 @@ int stageThree() {
 
     if (quantBlocks == 0){
       gPoints += 1000;
+      /*Mix_HaltMusic();*/
       SDL_FreeSurface(stageSurface);
       SDL_FreeSurface(pauseSurface);
       SDL_FreeSurface(inGameLife);
@@ -1312,6 +1336,7 @@ int stageThree() {
     SDL_Delay(time_left());
     next_time += TICK_INTERVAL;
   }
+  /*Mix_HaltMusic();*/
   SDL_FreeSurface(stageSurface);
   SDL_FreeSurface(pauseSurface);
   SDL_FreeSurface(inGameLife);
@@ -1354,8 +1379,7 @@ int stageTwo() {
   SDL_Surface *inGameLife;
   SDL_Surface *inGameBlocks;
   Mix_VolumeMusic(VOLUME);
-  return 1;
-  
+
   if (!loadInGameMenu()) {
     printf("Unable to load text media!\n");
   }
@@ -1391,9 +1415,9 @@ int stageTwo() {
     quantBlocks++;
   }
 
-  /*if (gMusicCondition) {
+  if (gMusicCondition) {
     Mix_PlayMusic(gStageTwoMusic, -1);
-  };*/
+  };
 
   while (!gQuit){
     while(SDL_PollEvent(&e) != 0) {
@@ -1442,6 +1466,7 @@ int stageTwo() {
     loseLife(&ball, &bar, &gameStarted);
 
     if (gLifes <= 0) {
+      /*Mix_HaltMusic();*/
       SDL_FreeSurface(stageSurface);
       SDL_FreeSurface(pauseSurface);
       SDL_FreeSurface(inGameLife);
@@ -1572,6 +1597,7 @@ int stageTwo() {
     SDL_Delay(time_left());
     next_time += TICK_INTERVAL;
   }
+  /*Mix_HaltMusic();*/
   SDL_FreeSurface(stageSurface);
   SDL_FreeSurface(pauseSurface);
   SDL_FreeSurface(inGameLife);
@@ -1616,7 +1642,6 @@ int stageOne() {
   SDL_Surface *inGamePoints;
   SDL_Surface *inGameLife;
   SDL_Surface *inGameBlocks;
-  return 1;
 
   if (!loadInGameMenu()) {
     printf("Unable to load text media!\n");
@@ -1702,6 +1727,7 @@ int stageOne() {
     loseLife(&ball, &bar, &gameStarted);
 
     if (gLifes <= 0) {
+      Mix_HaltMusic();
       SDL_FreeSurface(stageSurface);
       SDL_FreeSurface(pauseSurface);
       SDL_FreeSurface(inGameLife);
@@ -1833,6 +1859,7 @@ int stageOne() {
     SDL_Delay(time_left());
     next_time += TICK_INTERVAL;
   }
+  Mix_HaltMusic();
   SDL_FreeSurface(stageSurface);
   SDL_FreeSurface(pauseSurface);
   SDL_FreeSurface(inGameLife);
@@ -2183,6 +2210,7 @@ void menu() {
   SDL_Event e;
   SDL_Rect dstMenu;
   SDL_Rect dstSelect;
+  Mix_VolumeMusic(VOLUME);
 
   dstMenu.x = 0;
   dstMenu.y = 0;
@@ -2197,6 +2225,8 @@ void menu() {
     printf("Failed to load font! Error: %s\n", TTF_GetError());
   }
 
+  if (gMusicCondition) Mix_PlayMusic(gMenuMusic, -1);
+
   while (!gQuit) {
     while (SDL_PollEvent(&e) != 0) {
       switch(e.type) {
@@ -2207,6 +2237,7 @@ void menu() {
           if (e.key.keysym.sym == SDLK_RETURN) {
             switch(cursor) {
               case 0:
+                Mix_HaltMusic();
                 if (stageOne()) {
                   if (stageTwo()) {
                     stageThree();
@@ -2308,6 +2339,9 @@ void gameOver() {
                 gQuit = true;
             }
             else if (e.key.keysym.sym == SDLK_RETURN) {
+              SDL_FreeSurface(overSurface);
+              SDL_FreeSurface(backSurface);
+              TTF_CloseFont(font);
               menu();
             }
       }

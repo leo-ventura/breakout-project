@@ -34,11 +34,10 @@ SDL_Surface *gSoundButton = NULL;
 Mix_Chunk *gCollisionBarSound = NULL;
 Mix_Chunk *gCollisionBlockSound = NULL;
 Mix_Chunk *gDestroyBlockSound = NULL;
+Mix_Music *gMenuMusic = NULL;
 Mix_Music *gStageOneMusic = NULL;
-/*
 Mix_Music *gStageTwoMusic = NULL;
 Mix_Music *gStageThreeMusic = NULL;
-*/
 /* fonts */
 TTF_Font *gFont = NULL;
 SDL_Surface *gRankingText = NULL;
