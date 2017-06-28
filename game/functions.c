@@ -212,7 +212,6 @@ void collisionNpcBar(OBJECT bar, OBJECT *ball) {
        (ball->posY + BALL_HEIGHT/2 <= bar.posY + BAR_HEIGHT)){
           ball->stepX = abs(ball->stepX)>NPCBAR_SPEED? ball->stepX*-1 : NPCBAR_SPEED + 0.1;
           ball->posX += ball->stepX;
-          puts("colisao da direita");
   }
 
   /* left */
@@ -221,7 +220,6 @@ void collisionNpcBar(OBJECT bar, OBJECT *ball) {
        (ball->posY + BALL_HEIGHT/2 <= bar.posY + BAR_HEIGHT)){
           ball->stepX = abs(ball->stepX)>NPCBAR_SPEED? ball->stepX*-1 : (NPCBAR_SPEED + 0.1)*-1;
           ball->posX += ball->stepX;
-          puts("colisao da esquerda");
   }
   /* upper left */
   else if (distance(ball->posX + BALL_WIDTH/2, ball->posY + BALL_HEIGHT/2, bar.posX, bar.posY) < BALL_WIDTH/2){
@@ -537,13 +535,6 @@ void closing() {
 
     SDL_FreeSurface(gMenuSurface);
     gMenuSurface = NULL;
-
-    SDL_FreeSurface(gInGameLife);
-    SDL_FreeSurface(gInGameBlocks);
-    SDL_FreeSurface(gInGameOptions);
-    gInGameOptions = NULL;
-    gInGameBlocks = NULL;
-    gInGameLife = NULL;
 
     /* Close font */
     TTF_CloseFont(gFont);
@@ -1074,6 +1065,9 @@ int stageThree() {
   int bonus = false;
   OBJECT npcBar;
   SDL_Rect srcNpcBar, dstNpcBar;
+  SDL_Surface *inGamePoints;
+  SDL_Surface *inGameLife;
+  SDL_Surface *inGameBlocks;
   Mix_VolumeMusic(VOLUME);
 
   if (!loadInGameMenu()) {
@@ -1152,17 +1146,17 @@ int stageThree() {
     strcpy(points, "Points: ");
     sprintf(npoints, "%d", gPoints);
     strcat(points, npoints);
-    gInGamePoints = loadRenderedText(points, textcolor);
+    inGamePoints = loadRenderedText(points, textcolor);
 
     strcpy(lifes, "Lifes: ");
     sprintf(nlifes, "%d", gLifes);
     strcat(lifes, nlifes);
-    gInGameLife = loadRenderedText(lifes, textcolor);
+    inGameLife = loadRenderedText(lifes, textcolor);
 
     strcpy(blocks, "Blocks left: ");
     sprintf(nblocks, "%d", quantBlocks);
     strcat(blocks, nblocks);
-    gInGameBlocks = loadRenderedText(blocks, textcolor);
+    inGameBlocks = loadRenderedText(blocks, textcolor);
 
     moveNPCBAR(&npcBar);
     moveBAR(&bar, &ball, gameStarted);
@@ -1176,8 +1170,14 @@ int stageThree() {
 
     loseLife(&ball, &bar, &gameStarted);
 
-    if (gLifes <= 0) return 0;
-
+    if (gLifes <= 0) {
+      SDL_FreeSurface(stageSurface);
+      SDL_FreeSurface(pauseSurface);
+      SDL_FreeSurface(inGameLife);
+      SDL_FreeSurface(inGamePoints);
+      SDL_FreeSurface(inGameBlocks);
+      return 0;
+    }
     collisionBar(bar, &ball);
     collisionNpcBar(npcBar, &ball);
 
@@ -1276,9 +1276,9 @@ int stageThree() {
         SDL_BlitSurface(bar.image, &srcBar, gScreenSurface, &dstBar) < 0 ||
         SDL_BlitSurface(npcBar.image, &srcNpcBar, gScreenSurface, &dstNpcBar) < 0 ||
         SDL_BlitSurface(stageSurface, NULL, gScreenSurface, &dstStage) < 0 ||
-        SDL_BlitSurface(gInGameLife, NULL, gScreenSurface, &dstLifes) < 0 ||
-        SDL_BlitSurface(gInGameBlocks, NULL, gScreenSurface, &dstBlocks) < 0 ||
-        SDL_BlitSurface(gInGamePoints, NULL, gScreenSurface, &dstPoints) < 0 ||
+        SDL_BlitSurface(inGameLife, NULL, gScreenSurface, &dstLifes) < 0 ||
+        SDL_BlitSurface(inGameBlocks, NULL, gScreenSurface, &dstBlocks) < 0 ||
+        SDL_BlitSurface(inGamePoints, NULL, gScreenSurface, &dstPoints) < 0 ||
         SDL_BlitSurface(gMusicButton, &srcMusicButton, gScreenSurface, &dstMusicButton) < 0 ||
         SDL_BlitSurface(gSoundButton, &srcSoundButton, gScreenSurface, &dstSoundButton) < 0) {
         printf("SDL could not blit! SDL Error: %s\n", SDL_GetError());
@@ -1296,6 +1296,11 @@ int stageThree() {
 
     if (quantBlocks == 0){
       gPoints += 1000;
+      SDL_FreeSurface(stageSurface);
+      SDL_FreeSurface(pauseSurface);
+      SDL_FreeSurface(inGameLife);
+      SDL_FreeSurface(inGamePoints);
+      SDL_FreeSurface(inGameBlocks);
       return 1;
     }
     if (gPoints%9900 == 0) bonus = false;
@@ -1309,6 +1314,9 @@ int stageThree() {
   }
   SDL_FreeSurface(stageSurface);
   SDL_FreeSurface(pauseSurface);
+  SDL_FreeSurface(inGameLife);
+  SDL_FreeSurface(inGamePoints);
+  SDL_FreeSurface(inGameBlocks);
   return 0;
 }
 
@@ -1342,6 +1350,9 @@ int stageTwo() {
   int quantBlocks = 0;
   int pausedGame = false;
   int bonus = false;
+  SDL_Surface *inGamePoints;
+  SDL_Surface *inGameLife;
+  SDL_Surface *inGameBlocks;
   Mix_VolumeMusic(VOLUME);
 
   if (!loadInGameMenu()) {
@@ -1405,17 +1416,17 @@ int stageTwo() {
     strcpy(points, "Points: ");
     sprintf(npoints, "%d", gPoints);
     strcat(points, npoints);
-    gInGamePoints = loadRenderedText(points, textcolor);
+    inGamePoints = loadRenderedText(points, textcolor);
 
     strcpy(lifes, "Lifes: ");
     sprintf(nlifes, "%d", gLifes);
     strcat(lifes, nlifes);
-    gInGameLife = loadRenderedText(lifes, textcolor);
+    inGameLife = loadRenderedText(lifes, textcolor);
 
     strcpy(blocks, "Blocks left: ");
     sprintf(nblocks, "%d", quantBlocks);
     strcat(blocks, nblocks);
-    gInGameBlocks = loadRenderedText(blocks, textcolor);
+    inGameBlocks = loadRenderedText(blocks, textcolor);
 
     moveBAR(&bar, &ball, gameStarted);
     moveOBJECT(&ball);
@@ -1429,8 +1440,14 @@ int stageTwo() {
     collisionBar(bar, &ball);
     loseLife(&ball, &bar, &gameStarted);
 
-    if (gLifes <= 0) return 0;
-
+    if (gLifes <= 0) {
+      SDL_FreeSurface(stageSurface);
+      SDL_FreeSurface(pauseSurface);
+      SDL_FreeSurface(inGameLife);
+      SDL_FreeSurface(inGamePoints);
+      SDL_FreeSurface(inGameBlocks);
+      return 0;
+    }
     /* ball's source */
     switch (gBallColor) {
       case 0:
@@ -1517,9 +1534,9 @@ int stageTwo() {
     if(SDL_BlitSurface(ball.image, &srcBall, gScreenSurface, &dstBall) < 0 ||
       SDL_BlitSurface(bar.image, &srcBar, gScreenSurface, &dstBar) < 0 ||
       SDL_BlitSurface(stageSurface, NULL, gScreenSurface, &dstStage) < 0 ||
-      SDL_BlitSurface(gInGameLife, NULL, gScreenSurface, &dstLifes) < 0 ||
-      SDL_BlitSurface(gInGameBlocks, NULL, gScreenSurface, &dstBlocks) < 0 ||
-      SDL_BlitSurface(gInGamePoints, NULL, gScreenSurface, &dstPoints) < 0 ||
+      SDL_BlitSurface(inGameLife, NULL, gScreenSurface, &dstLifes) < 0 ||
+      SDL_BlitSurface(inGameBlocks, NULL, gScreenSurface, &dstBlocks) < 0 ||
+      SDL_BlitSurface(inGamePoints, NULL, gScreenSurface, &dstPoints) < 0 ||
       SDL_BlitSurface(gMusicButton, &srcMusicButton, gScreenSurface, &dstMusicButton) < 0 ||
       SDL_BlitSurface(gSoundButton, &srcSoundButton, gScreenSurface, &dstSoundButton) < 0) {
         printf("SDL could not blit! SDL Error: %s\n", SDL_GetError());
@@ -1538,6 +1555,11 @@ int stageTwo() {
     if (quantBlocks == 0){
       gPoints += 1000;
       /*Mix_HaltMusic();*/
+      SDL_FreeSurface(stageSurface);
+      SDL_FreeSurface(pauseSurface);
+      SDL_FreeSurface(inGameLife);
+      SDL_FreeSurface(inGamePoints);
+      SDL_FreeSurface(inGameBlocks);
       return 1;
     }
     if (gPoints%9900 == 0) bonus = false;
@@ -1551,6 +1573,9 @@ int stageTwo() {
   }
   SDL_FreeSurface(stageSurface);
   SDL_FreeSurface(pauseSurface);
+  SDL_FreeSurface(inGameLife);
+  SDL_FreeSurface(inGamePoints);
+  SDL_FreeSurface(inGameBlocks);
   return 0;
 }
 
@@ -1587,6 +1612,10 @@ int stageOne() {
   int pausedGame = false;
   int bonus = false;
   Mix_VolumeMusic(VOLUME);
+  SDL_Surface *inGamePoints;
+  SDL_Surface *inGameLife;
+  SDL_Surface *inGameBlocks;
+
 
   if (!loadInGameMenu()) {
     printf("Unable to load text media!\n");
@@ -1644,17 +1673,17 @@ int stageOne() {
     strcpy(points, "Points: ");
     sprintf(npoints, "%d", gPoints);
     strcat(points, npoints);
-    gInGamePoints = loadRenderedText(points, textcolor);
+    inGamePoints = loadRenderedText(points, textcolor);
 
     strcpy(lifes, "Lifes: ");
     sprintf(nlifes, "%d", gLifes);
     strcat(lifes, nlifes);
-    gInGameLife = loadRenderedText(lifes, textcolor);
+    inGameLife = loadRenderedText(lifes, textcolor);
 
     strcpy(blocks, "Blocks left: ");
     sprintf(nblocks, "%d", quantBlocks);
     strcat(blocks, nblocks);
-    gInGameBlocks = loadRenderedText(blocks, textcolor);
+    inGameBlocks = loadRenderedText(blocks, textcolor);
 
     moveBAR(&bar, &ball, gameStarted);
     moveOBJECT(&ball);
@@ -1671,8 +1700,14 @@ int stageOne() {
 
     loseLife(&ball, &bar, &gameStarted);
 
-    if (gLifes <= 0) return 0;
-
+    if (gLifes <= 0) {
+      SDL_FreeSurface(stageSurface);
+      SDL_FreeSurface(pauseSurface);
+      SDL_FreeSurface(inGameLife);
+      SDL_FreeSurface(inGamePoints);
+      SDL_FreeSurface(inGameBlocks);
+      return 0;
+    }
     /* ball's source */
     switch (gBallColor) {
       case 0:
@@ -1759,9 +1794,9 @@ int stageOne() {
     if(SDL_BlitSurface(ball.image, &srcBall, gScreenSurface, &dstBall) < 0 ||
       SDL_BlitSurface(bar.image, &srcBar, gScreenSurface, &dstBar) < 0 ||
       SDL_BlitSurface(stageSurface, NULL, gScreenSurface, &dstStage) < 0 ||
-      SDL_BlitSurface(gInGameLife, NULL, gScreenSurface, &dstLifes) < 0 ||
-      SDL_BlitSurface(gInGameBlocks, NULL, gScreenSurface, &dstBlocks) < 0 ||
-      SDL_BlitSurface(gInGamePoints, NULL, gScreenSurface, &dstPoints) < 0 ||
+      SDL_BlitSurface(inGameLife, NULL, gScreenSurface, &dstLifes) < 0 ||
+      SDL_BlitSurface(inGameBlocks, NULL, gScreenSurface, &dstBlocks) < 0 ||
+      SDL_BlitSurface(inGamePoints, NULL, gScreenSurface, &dstPoints) < 0 ||
       SDL_BlitSurface(gMusicButton, &srcMusicButton, gScreenSurface, &dstMusicButton) < 0 ||
       SDL_BlitSurface(gSoundButton, &srcSoundButton, gScreenSurface, &dstSoundButton) < 0) {
         printf("SDL could not blit! SDL Error: %s\n", SDL_GetError());
@@ -1781,6 +1816,11 @@ int stageOne() {
     if (quantBlocks == 0) {
       gPoints += 1000;
       Mix_HaltMusic();
+      SDL_FreeSurface(stageSurface);
+      SDL_FreeSurface(pauseSurface);
+      SDL_FreeSurface(inGameLife);
+      SDL_FreeSurface(inGamePoints);
+      SDL_FreeSurface(inGameBlocks);
       return 1;
     }
     if (gPoints%9900 == 0) bonus = false;
@@ -1794,6 +1834,9 @@ int stageOne() {
   }
   SDL_FreeSurface(stageSurface);
   SDL_FreeSurface(pauseSurface);
+  SDL_FreeSurface(inGameLife);
+  SDL_FreeSurface(inGamePoints);
+  SDL_FreeSurface(inGameBlocks);
   return 0;
 }
 
