@@ -925,6 +925,8 @@ void settings() {
           SDL_BlitSurface(gSelectedOption, NULL, gScreenSurface, &dstSelectedOption) < 0) {
         printf("Error while blitting ranking surface!\n");
       }
+      SDL_Delay(time_left());
+      next_time += TICK_INTERVAL;
       SDL_UpdateWindowSurface(gWindow);
     }
   }
@@ -1038,6 +1040,8 @@ void help() {
       printf("Error while blitting ranking surface!\n");
       gQuit = true;
     }
+    SDL_Delay(time_left());
+    next_time += TICK_INTERVAL;
     SDL_UpdateWindowSurface(gWindow);
   }
   SDL_FreeSurface(helpSurface1);
@@ -2061,6 +2065,8 @@ void getPlayerName(char *jogador) {
         }
       }
     }
+    SDL_Delay(time_left());
+    next_time += TICK_INTERVAL;
     SDL_UpdateWindowSurface(gWindow);
   }
   SDL_FreeSurface(congrats);
@@ -2153,6 +2159,8 @@ void ranking() {
           gQuit = true;
         }
       }
+      SDL_Delay(time_left());
+      next_time += TICK_INTERVAL;
       SDL_UpdateWindowSurface(gWindow);
   }
   for (i = 0; i < 5; i++) {
@@ -2218,11 +2226,6 @@ void menu() {
 
   dstMenu.x = 0;
   dstMenu.y = 0;
-
-  /*if (!loadTextMedia()) {
-    printf("Could not load text media!\n");
-    gQuit = true;
-  }*/
 
   gFont = TTF_OpenFont("../image_library/alagard_BitFont.ttf", 28);
   if (!gFont) {
@@ -2301,6 +2304,8 @@ void menu() {
           SDL_BlitSurface(gSelectedOption, NULL, gScreenSurface, &dstSelect) < 0) {
         printf("Error while blitting ranking surface!\n");
       }
+      SDL_Delay(time_left());
+      next_time += TICK_INTERVAL;
       SDL_UpdateWindowSurface(gWindow);
     }
   }
@@ -2357,6 +2362,8 @@ void gameOver() {
       printf("Error while blitting ranking surface!\n");
       gQuit = true;
     }
+    SDL_Delay(time_left());
+    next_time += TICK_INTERVAL;
     SDL_UpdateWindowSurface(gWindow);
   }
   SDL_FreeSurface(overSurface);
