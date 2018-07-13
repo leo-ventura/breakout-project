@@ -25,7 +25,7 @@ sudo pacman -S sdl2 sdl2_image sdl2_mixer sdl2_ttf
 ```
 
 ### Compilation on Linux
-  - To download and compile, all you have to do is:
+  - To download, compile and run, all you have to do is:
     ```
     git clone https://github.com/leo-ventura/breakout-project.git
     cd breakout-project/src
