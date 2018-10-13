@@ -1,6 +1,6 @@
 CC=gcc
 
-CFLAGS=-g -Wall -D_GNU_SOURCE=1 -D_REENTRANT -pedantic -lm
+CFLAGS=-s -g -Wall -D_GNU_SOURCE=1 -D_REENTRANT -pedantic -lm
 IMAGE_FLAGS=-lSDL2_image
 MIXER_FLAGS=-lSDL2_mixer
 FONTS_FLAGS=-lSDL2_ttf
